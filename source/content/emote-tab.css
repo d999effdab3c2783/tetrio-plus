@@ -1,6 +1,17 @@
 .tetrioplus-emote-picker {
   position: absolute;
   bottom: 40px;
+  right: 5px;
+  left: 0px;
+}
+#ingame_chat {
+  overflow: visible;
+}
+#ingame_chat > .tetrioplus-emote-picker {
+  overflow: visible;
+  z-index: 9999999999;
+  pointer-events: all;
+  left: 40px;
 }
 
 .tetrioplus-emote-picker:not(.visible) {

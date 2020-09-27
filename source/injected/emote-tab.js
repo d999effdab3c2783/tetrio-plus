@@ -1,7 +1,7 @@
 /* Added by Jabster28 | MIT Licensed */
 /* Modified by UniQMG */
 (async () => {
-  let user = localStorage.userId
+  let user = localStorage.userID
     ? (await (await fetch(`/api/users/${localStorage.userID}`, {
         headers: new Headers({
           Authorization: 'Bearer ' + localStorage.userToken,
@@ -24,26 +24,48 @@
   add(emotes.verified, user.verified);
   add(emotes.staff, user.role == 'admin');
 
+  const chat = document.getElementById('room_chat');
+  const ingamechat = document.getElementById('ingame_chat');
+  const chatbox = document.getElementById('chat_input');
+  const ingamechatbox = document.getElementById('ingame_chat_input');
+
   const picker = document.createElement('div');
   picker.classList.add('tetrioplus-emote-picker');
+  picker.classList.add('chat-message');
   for (let { name, url, allowed } of emoteList) {
     let img = document.createElement('img');
     img.classList.toggle('disallowed', !allowed);
     picker.appendChild(img);
     if (allowed) {
       img.addEventListener('click', () => {
-        chatbox.value += `:${name}:`;
+        if (picker.parentElement == ingamechat) {
+          ingamechatbox.value += `:${name}:`;
+        } else {
+          chatbox.value += `:${name}:`;
+        }
       });
     }
     img.src = '/res/' + url;
   }
 
-  const chat = document.getElementById('room_chat');
-  const chatbox = document.getElementById('chat_input');
   chatbox.addEventListener('keydown', evt => {
     if (evt.key != 'Tab') return;
     evt.preventDefault();
-    chat.appendChild(picker); // Gets removed when chat is cleared so replace it
-    picker.classList.toggle('visible');
+    if (picker.parentElement != chat) {
+      chat.appendChild(picker);
+      picker.classList.toggle('visible', true);
+    } else {
+      picker.classList.toggle('visible');
+    }
+  });
+  ingamechatbox.addEventListener('keydown', evt => {
+    if (evt.key != 'Tab') return;
+    evt.preventDefault();
+    if (picker.parentElement != ingamechat) {
+      ingamechat.appendChild(picker);
+      picker.classList.toggle('visible', true);
+    } else {
+      picker.classList.toggle('visible');
+    }
   });
 })()
