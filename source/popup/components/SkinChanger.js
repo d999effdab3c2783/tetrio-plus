@@ -57,7 +57,6 @@ export default {
     rmSkinBlob() {
       if (!this.skinBlob) return;
       URL.revokeObjectURL(this.skinBlob);
-      this.skinBlob = null;
       console.log("Cleared blob");
     },
     async openImageChanger() {
