@@ -341,5 +341,7 @@ app.whenReady().then(async () => {
     });
   }
 
-  createTetrioPlusWindow();
+  if (!store.get('hideTetrioPlusOnStartup')) {
+    createTetrioPlusWindow();
+  }
 }).catch(greenlog);

@@ -54,6 +54,8 @@ async function sanitizeAndLoadTPSE(data, storage) {
     transparentBgEnabled: electronOnly(parseBoolean('transparentBgEnabled')),
     opaqueTransparentBackground: parseBoolean('opaqueTransparentBackground'),
     openDevtoolsOnStart: electronOnly(parseBoolean('openDevtoolsOnStart')),
+    // not included in content packs to prevent footgunning
+    // hideTetrioPlusOnStartup: electronOnly(parseBoolean('hideTetrioPlusOnStartup')),
     enableAllSongTweaker: parseBoolean('enableAllSongTweaker'),
     showLegacyOptions: parseBoolean('showLegacyOptions'),
     bypassBootstrapper: parseBoolean('bypassBootstrapper'),

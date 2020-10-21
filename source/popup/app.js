@@ -142,6 +142,13 @@ const app = new Vue({
               Open devtools automatically
             </span>
           </option-toggle>
+          <option-toggle storageKey="hideTetrioPlusOnStartup" v-if="isElectron">
+            <span :title="(
+              'Hides this window on startup. You can press ctrl-t to reopen it.'
+            )">
+              Hide Tetrio Plus window on startup
+            </span>
+          </option-toggle>
 
           <option-toggle
             storageKey="debugBreakTheGame"
