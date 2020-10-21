@@ -5,9 +5,10 @@
   left: 0px;
 }
 #ingame_chat {
-  overflow: visible;
+  overflow-y: scroll;
 }
 #ingame_chat > .tetrioplus-emote-picker {
+  position: fixed;
   overflow: visible;
   z-index: 9999999999;
   pointer-events: all;
