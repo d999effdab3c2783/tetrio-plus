@@ -9,7 +9,7 @@ createRewriteFilter("Music Request", "https://tetr.io/res/bgm/*", {
     let { musicEnabled, music } = await storage.get(
       ['musicEnabled', 'music']
     );
-    if (!musicEnabled) return false;
+    if (!musicEnabled || !music) return false;
 
     let [_, songname] = /bgm\/(.+).mp3$/.exec(url);
     let overrides = music.filter(song => song.override == songname);
