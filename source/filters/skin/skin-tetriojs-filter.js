@@ -47,7 +47,7 @@ createRewriteFilter("Animated skins", "https://tetr.io/js/tetrio.js", {
           let proxy = new Proxy(frames, {
             get(target, prop) {
               if (prop == 'ratio')
-                return ${ canvasesContainer }.minoCanvases.z.height / frameHeight;
+                return 30 / frameHeight;
               if (/^\\d+|length$/.test(prop))
                 return frames[prop];
               return frames[0][prop];
@@ -96,7 +96,11 @@ createRewriteFilter("Animated skins", "https://tetr.io/js/tetrio.js", {
           let { frames, delay } = ${b64Recode(res.skinAnimMeta)};
           let sprite = new PIXI.AnimatedSprite(${contents});
           sprite.animationSpeed = 1/delay;
-          sprite.scale.set(${scaleFuncName}(31/30), ${scaleFuncName}(1));
+          let texture = [${contents}][0];
+          sprite.scale.set(
+            ${scaleFuncName}(31/30) * texture.ratio,
+            ${scaleFuncName}(1) * texture.ratio
+          );
 
           let target = () => ~~(((PIXI.Ticker.shared.lastTime/1000) * 60 / delay) % frames);
           sprite.gotoAndStop(target());
