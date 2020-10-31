@@ -76,7 +76,12 @@ export default {
       }
     },
     resetSkin() {
-      browser.storage.local.remove(['skin', 'skinPng']).then(() => {
+      browser.storage.local.remove([
+        'skinSvg',
+        'skinPng',
+        'skinAnim',
+        'skinAnimMeta'
+      ]).then(() => {
         this.cachedSkin = null;
       });
     }
