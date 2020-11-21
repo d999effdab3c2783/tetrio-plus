@@ -18,7 +18,10 @@ These are pre-packaged versions, the following instructions are for developers w
 - `cd resources`
 - Unpack the asar with `asar extract app.asar out`
 - Clone tetrio+ into `out/tetrioplus`
-- `npm install` in `out/tetrioplus`
+- `npm install node-fetch whatwg-url xmldom` in `out/tetrioplus`
+  (Currently doing this manually because the standalone TPSE importer has its own dependencies list
+  that would be super bloated for the desktop release, and npm has literally no way to have a third
+  list of dependencies.)
 - Modify main.js like so:
 ```javascript
 // At the top of the file
@@ -52,9 +55,14 @@ require('./tetrioplus/source/electron/preload');
 - Repack the asar file: `asar pack out app.asar`
 - Distribute the asar file!
 
-## Desktop packaging instructions
+## Firefox packaging instructions
 The files can be zipped and distributed as-in, but you can run `pack.sh` to
 generate a zipfile without unnecessary (i.e. electron-related) files.
+
+## The standalone TPSE generator
+This is a utility to generate TPSE files from local assets without having to manually go through the UIs.
+It can either be used as a console app (`node makeTPSE.js -- help`) or as an npm dependency.
+See `source/importers/import.js` for an API overview and `importer/app.js` for example usage.
 
 ## Directory structure
 Tetrio plus is designed to be loaded in two contexts: As a firefox extension, and as a native modification for the desktop client.

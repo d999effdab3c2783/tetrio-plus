@@ -1,3 +1,4 @@
+// Console app entry point
 import './polyfills.js';
 import { program } from 'commander';
 import { storage, tpse } from './storage.js';
