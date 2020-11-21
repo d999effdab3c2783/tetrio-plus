@@ -29,9 +29,9 @@ export function convertToTetrio(image) {
   return canvas;
 }
 import { load as loadtetrio } from './tetrio-raster.js';
-export async function load(files) {
+export async function load(files, storage) {
   let file = files[0];
   let image = convertToTetrio(file.image);
   let data = image.toDataURL('image/png');
-  await loadtetrio([{ ...file, image, data }]);
+  await loadtetrio([{ ...file, image, data }], storage);
 }

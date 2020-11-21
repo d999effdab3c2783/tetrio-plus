@@ -1,14 +1,6 @@
-const html = arg => arg.join(''); // NOOP, for editor integration.
 import filehelper from './filehelper.js';
-
-import * as tetriosvg from './loaders/tetrio-svg.js';
-import * as tetrioraster from './loaders/tetrio-raster.js';
-import * as tetrioanim from './loaders/tetrio-animated.js';
-import * as jstrisraster from './loaders/jstris-raster.js';
-import * as jstrisanim from './loaders/jstris-animated.js';
-const loaders = [
-  tetriosvg, tetrioraster, tetrioanim, jstrisraster, jstrisanim
-].map(e => ({...e}));
+import importer from '../../importers/import.js';
+const html = arg => arg.join(''); // NOOP, for editor integration.
 
 const app = new Vue({
   template: html`
@@ -56,7 +48,7 @@ const app = new Vue({
     delay: 30,
     overrideFPS: false,
     combine: true,
-    loaders: loaders
+    loaders: importer.skin.loaders.map(e => ({...e}))
   },
   computed: {
     extrainputs() {
@@ -78,36 +70,44 @@ const app = new Vue({
       }
 
       console.log("Files", files);
+
+      // Check if aspect ratios are valid
       if (!this.loader) {
-        for (let file of files) {
+        files: for (let file of files) {
           let aspect = file.image.width / file.image.height;
-          if (aspect == 12.4 || aspect == 9) continue;
+
+          let fmts = [];
+          for (let [name, ratio] of importer.skin.knownAspectRatios) {
+            fmts.push(`${name} format is ${ratio}`);
+            if (aspect == ratio) continue files;
+          }
+
           alert(
             `Unknown aspect ratio ${aspect}. ` +
-            'Tetrio format is 12.4, Jstris format is 9. This skin isn\'t ' +
+            fmts.join(', ') + '. This skin isn\'t ' +
             'formatted correctly, but choosing the closest option may work.'
           );
           return;
         }
       }
 
-      if (!this.loader) {
-        let loaders = this.loaders.filter(loader => loader.test(files));
-        console.log("Applicable loaders", loaders.map(loader => loader.name));
-        if (loaders.length !== 1) {
-          alert(
-            'Unable to determine format. This is probably a bug, but you can ' +
-            'try setting the loader manually.'
-          );
-          return;
-        }
-        await loaders[0].load(files);
-      } else {
-        await this.loader.load(files);
+      try {
+        let opts = {
+          delay: this.overrideFPS ? this.delay : 0,
+          combine: this.combine
+        };
+        console.log(opts);
+
+        this.loader
+          ? await this.loader.load(files, browser.storage.local, opts)
+          : await importer.skin.automatic(files, browser.storage.local, opts);
+        alert('Skin set!');
+      } catch(ex) {
+        alert(ex.toString());
+        console.error(ex);
       }
-      alert('Skin set!');
     }
   }
 });
-app.$mount('#app');
 window.app = app;
+app.$mount('#app');

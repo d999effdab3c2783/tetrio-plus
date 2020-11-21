@@ -8,14 +8,14 @@ export function test(files) {
   let aspect = files[0].image.width / files[0].image.height;
   return aspect == 12.4;
 }
-export async function load(files) {
+export async function load(files, storage) {
   let file = files[0];
 
   let placeholder = browser.extension.getURL('resources/template.svg');
   let template = await (await fetch(placeholder)).text();
   let svg = template.replace('<!--custom-image-embed-->', file.data);
 
-  await browser.storage.local.set({
+  await storage.set({
     skinSvg: svg,
     skinPng: file.data,
     skinAnim: file.data,

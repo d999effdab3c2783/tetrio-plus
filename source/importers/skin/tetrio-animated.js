@@ -11,15 +11,15 @@ export function test(files) {
   });
 }
 
-export async function splitgif(file) {
+export async function splitgif(file, options) {
   const gif = GIFGroover();
   gif.playOnLoad = false;
   gif.src = file.data;
   let evt = await new Promise(res => gif.onload = res);
 
-  if (!app.overrideFPS) {
+  if (options.delay == 0) {
     let fps = ((gif.duration / gif.frameCount) / 1000) * 60;
-    app.delay = fps;
+    options.delay = fps;
   }
 
   let canvas = document.createElement('canvas');
@@ -29,7 +29,7 @@ export async function splitgif(file) {
 
   let frames = [];
   for (let i = 0; i < gif.frameCount; i++) {
-    if (!app.combine)
+    if (!options.combine)
       ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(gif.getFrame(i), 0, 0);
 
@@ -44,9 +44,9 @@ export async function splitgif(file) {
 }
 
 import { load as loadraster } from './tetrio-raster.js';
-export async function load(files) {
+export async function load(files, storage, options) {
   if (files.length == 1 && files[0].type == 'image/gif')
-    files = await splitgif(files[0]);
+    files = await splitgif(files[0], options);
 
   let canvas = document.createElement('canvas');
   let step = files[0].image.height;
@@ -58,15 +58,16 @@ export async function load(files) {
     ctx.drawImage(files[i].image, 0, i * step, canvas.width, step);
   }
 
-  console.log("Frames", files);
-  await loadraster([files[0]]); // populate normal skins too
-  await browser.storage.local.set({
+  console.error(options);
+
+  await loadraster([files[0]], storage); // populate normal skins too
+  await storage.set({
     skinAnim: canvas.toDataURL('image/png'),
     skinAnimMeta: {
       frames: files.length,
       frameWidth: canvas.width,
       frameHeight: step,
-      delay: app.delay
+      delay: options.delay || 30
     }
   });
 }

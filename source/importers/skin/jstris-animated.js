@@ -12,13 +12,13 @@ export function test(files) {
 }
 import { convertToTetrio } from './jstris-raster.js';
 import { load as loadtetrioanim, splitgif } from './tetrio-animated.js';
-export async function load(files) {
+export async function load(files, storage, options) {
   if (files.length == 1 && files[0].type == 'image/gif')
-    files = await splitgif(files[0]);
+    files = await splitgif(files[0], options);
 
   await loadtetrioanim(files.map(file => {
     let image = convertToTetrio(file.image);
     let data = image.toDataURL('image/png');
     return { ...file, image, data };
-  }));
+  }), storage, options);
 }

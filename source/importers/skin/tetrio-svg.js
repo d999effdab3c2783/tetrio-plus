@@ -7,11 +7,9 @@ export function test(files) {
   let aspect = files[0].image.width / files[0].image.height;
   return aspect == 12.4;
 }
-export async function load(files) {
+export async function load(files, storage) {
   let file = files[0];
-  let svg = await (await fetch(files[0].data)).text()
-  console.log(svg);
-
+  let svg = await (await fetch(files[0].data)).text();
 
   let canvas = document.createElement('canvas');
   let ctx = canvas.getContext('2d');
@@ -20,7 +18,7 @@ export async function load(files) {
   ctx.drawImage(file.image, 0, 0);
 
   let png = canvas.toDataURL('image/png');
-  await browser.storage.local.set({
+  await storage.set({
     skinSvg: svg,
     skinPng: png,
     skinAnim: png,
