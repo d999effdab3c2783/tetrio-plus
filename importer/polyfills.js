@@ -6,6 +6,7 @@ import fs from 'fs';
 import { Canvas, Image } from 'canvas';
 import './decoders.js';
 import { Blob, FileReader } from 'vblob';
+import GIFGroover from './lib/GIFGroover.js';
 
 global.self = global;
 require('../source/lib/OggVorbisEncoder.js');
@@ -14,6 +15,7 @@ require('../source/lib/OggVorbisEncoder.js');
 Object.assign(global, {
   Blob,
   FileReader,
+  GIFGroover,
   OggVorbisEncoder,
   OfflineAudioContext,
   Image,

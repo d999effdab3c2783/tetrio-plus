@@ -4,20 +4,19 @@
   "author": "UniQMG",
   "description": "Tetrio Plus",
   "main": "makeTPSELib.js",
-  "version": "0.16.2",
+  "version": "0.16.3",
   "dependencies": {
-    "node-fetch": "^2.6.1",
-    "whatwg-url": "^8.1.0",
-    "xmldom": "^0.3.0",
-
     "canvas": "^2.6.1",
     "commander": "^6.2.0",
-    "mime-types": "^2.1.27",
-    "stream-buffers": "^3.0.2",
-    "vue-template-compiler": "^2.6.12",
-    "vblob": "^1.0.2",
     "esm": "^3.2.25",
-    "web-audio-engine": "^0.13.4"
+    "mime-types": "^2.1.27",
+    "node-fetch": "^2.6.1",
+    "stream-buffers": "^3.0.2",
+    "vblob": "^1.0.2",
+    "vue-template-compiler": "^2.6.12",
+    "web-audio-engine": "^0.13.4",
+    "whatwg-url": "^8.1.0",
+    "xmldom": "^0.3.0"
   },
   "devDependencies": {
     "@vue/component-compiler-utils": "^3.2.0",
