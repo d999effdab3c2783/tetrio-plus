@@ -34,7 +34,7 @@ Object.assign(global, {
       let [_1,_2,data] = /^data:.+\/(.+);base64,(.*)$/.exec(url);
       let buffer = Buffer.from(data, 'base64');
       return { // mock response
-        async text() { return buffer.toString(); }
+        async text() { return buffer.toString(); },
         async arrayBuffer() { return buffer; }
       }
     }
