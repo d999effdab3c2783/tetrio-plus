@@ -28,6 +28,13 @@ Object.assign(global, {
   async fetch(url) {
     if (url instanceof Readable)
       return new Response(url);
+
+    let dataUrl = /^data:.+\/(.+);base64,(.*)$/;
+    if (dataUrl.test(url)) {
+      let [_1,_2,data] = /^data:.+\/(.+);base64,(.*)$/.exec(url);
+      return Buffer.from(data, 'base64');
+    }
+
     return await fetch(url);
   },
   browser: {
