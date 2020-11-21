@@ -3,6 +3,7 @@
   "author": "UniQMG",
   "description": "Tetrio Plus",
   "main": "makeTPSE.js",
+  "version": "0.16.1",
   "dependencies": {
     "node-fetch": "^2.6.1",
     "whatwg-url": "^8.1.0",
