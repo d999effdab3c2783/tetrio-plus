@@ -1,11 +1,7 @@
 const sampleRate = 44100;
 const channels = 2;
 
-const decoderCtx = new window.OfflineAudioContext({
-  numberOfChannels: channels,
-  length: sampleRate * 1,
-  sampleRate: sampleRate
-});
+const decoderCtx = new window.OfflineAudioContext(channels, sampleRate, sampleRate);
 
 export async function decodeAudio(buffer) {
   return await decoderCtx.decodeAudioData(buffer);
@@ -54,11 +50,11 @@ export async function decodeDefaults(status=(()=>{})) {
     // Convert milliseconds to seconds
     offset /= 1000; duration /= 1000;
 
-    const ctx = new window.OfflineAudioContext({
-      numberOfChannels: channels,
-      length: sampleRate * duration,
-      sampleRate: sampleRate
-    });
+    const ctx = new window.OfflineAudioContext(
+      channels,
+      sampleRate*duration,
+      sampleRate
+    );
 
     let source = ctx.createBufferSource();
     source.buffer = sfxBuffer;

@@ -51,7 +51,7 @@ program
       // process.exit(1);
     });
 
-    console.log(JSON.stringify(tpse));
+    console.log(JSON.stringify(tpse, null, 2));
     console.error("Done");
   });
 

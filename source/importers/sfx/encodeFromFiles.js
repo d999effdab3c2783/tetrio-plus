@@ -15,9 +15,9 @@ export async function load(files, storage) {
 
   for (let file of files) {
     let noExt = file.name.split('.').slice(0, -1).join('.');
-    let sprite = sprites.filter(sprite => sprite.name == noExt);
+    let sprite = sprites.filter(sprite => sprite.name == noExt)[0];
     if (!sprite) throw new Error('Unknown sfx name: ' + noExt);
-    sprite.buffer = decodeAudio(file.buffer);
+    sprite.buffer = await decodeAudio(file.buffer);
     sprite.duration = sprite.buffer.duration;
     sprite.offset = -1;
     sprite.modified = true;

@@ -7,7 +7,8 @@ export default async function encode(sprites, storage) {
   let atlas = {};
   let currentOffset = 0;
   for (let { name, buffer } of sprites) {
-    let duration = buffer.duration * 1000; // 0 for some reason??
+    console.error('buffer', name, buffer.duration, '@', buffer.sampleRate);
+    let duration = buffer.duration * 1000;
     let offset = currentOffset;
     currentOffset += duration;
 
@@ -20,7 +21,13 @@ export default async function encode(sprites, storage) {
     ]);
   }
 
+
   let blob = encoder.finish();
+  // require('fs').writeFileSync('debug.ogg.wav', Buffer.from(await new Promise(res => {
+  //   let blobReader = new window.FileReader();
+  //   blobReader.onload = evt => res(blobReader.result)
+  //   blobReader.readAsArrayBuffer(blob);
+  // })));
   let dataUrl = await new Promise(res => {
     let blobReader = new window.FileReader();
     blobReader.onload = evt => res(blobReader.result)

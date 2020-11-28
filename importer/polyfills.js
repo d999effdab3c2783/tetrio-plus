@@ -4,11 +4,16 @@ import { Readable } from 'stream';
 import path from 'path';
 import fs from 'fs';
 import { Canvas, Image } from 'canvas';
-import './decoders.js';
 import { Blob, FileReader } from 'vblob';
 
 global.self = global;
+global.OggVorbisEncoderConfig = { TOTAL_MEMORY: 64 * 1024**2 };
 require('../source/lib/OggVorbisEncoder.js');
+
+require('vorbis.js');
+import decode from 'audio-decode';
+
+require('./decoders.js');
 
 // Web API polyfills
 Object.assign(global, {
@@ -18,6 +23,11 @@ Object.assign(global, {
     FileReader,
     OggVorbisEncoder,
     OfflineAudioContext,
+    // OfflineAudioContext: function(...args) {
+    //   let ctx = new OfflineAudioContext(...args);
+    //   ctx.decodeAudioData = buf => decode(buf);
+    //   return ctx;
+    // },
     Image,
     document: {
       createElement(el) {
