@@ -8,7 +8,11 @@ export async function decodeAudio(buffer) {
 }
 
 export async function fetchAtlas() {
-  let srcRequest = await window.fetch('https://tetr.io/js/tetrio.js');
+  // CORS issue when fetching from second URL
+  let srcUrl = window?.browser?.electron
+    ? 'tetrio-plus://tetrio-plus/js/tetrio.js'
+    : 'https://tetr.io/js/tetrio.js';
+  let srcRequest = await window.fetch(srcUrl);
   let src = await srcRequest.text();
 
   let regex = /TETRIO_SE_SHEET\s*=\s*(?:({[^}]+})|.+?JSON\.parse\("\[([\d,]+))/;
@@ -32,7 +36,10 @@ export async function fetchAtlas() {
 }
 
 export async function fetchAudio() {
-  let request = await window.fetch('https://tetr.io/sfx/tetrio.ogg');
+  let oggUrl = window?.browser?.electron
+    ? 'tetrio-plus://tetrio-plus/sfx/tetrio.ogg'
+    : 'https://tetr.io/sfx/tetrio.ogg';
+  let request = await window.fetch(oggUrl);
   let encodedSfxBuffer = await request.arrayBuffer();
   return await decodeAudio(encodedSfxBuffer);
 }
