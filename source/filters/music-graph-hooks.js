@@ -20,28 +20,47 @@ createRewriteFilter("Music graph hooks", "https://tetr.io/js/tetrio.js", {
       } else {
         const typeVar = match[1];
         const spatialVar = match[2];
+
         /**
-         * This regex targets a function that handles text creation and turns it
-         * into a global hook for other scripts to consume.
+         * These two regexii targets two functions that handles text creation and
+         * turns them into a global hook for other scripts to consume.
          */
         var match = false;
-        var rgx = /(function \w+\((\w+),\s*(\w+)\)\s*{)(.{0,50}video.actiontext)/i;
-        src = src.replace(rgx, ($, funcDef, arg1, arg2, funcBody) => {
+        var rgx = /Shout:\s*function\((\w{1,2}),(\w{1,2}),(\w{1,2}),(\w{1,2})\)\s*{/i;
+        src = src.replace(rgx, ($, arg1, arg2) => {
           match = true;
           return (
-            funcDef +
+            $ +
             `document.dispatchEvent(new CustomEvent('tetrio-plus-actiontext', {
               detail: {
                 type: ${arg1},
                 text: ${arg2},
                 spatialization:${spatialVar}
               }
-            }));` +
-            funcBody
+            }));`
           )
         });
         if (!match) {
-          console.error('Music graph hooks broken (text)');
+          console.error('Music graph hooks broken (text 1/2)');
+        }
+
+        var match = false;
+        var rgx = /Splash:\s*function\((\w{1,2}),(\w{1,2})\)\s*{/;
+        src = src.replace(rgx, ($, arg1, arg2) => {
+          match = true;
+          return (
+            $ +
+            `document.dispatchEvent(new CustomEvent('tetrio-plus-actiontext', {
+              detail: {
+                type: ${arg1},
+                text: ${arg2},
+                spatialization:${spatialVar}
+              }
+            }));`
+          )
+        });
+        if (!match) {
+          console.error('Music graph hooks broken (text 2/2)');
         }
 
         /**

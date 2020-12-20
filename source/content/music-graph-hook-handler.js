@@ -325,6 +325,19 @@ try {
       let type = locationHeuristic(evt.detail.type, evt.detail.spatialization);
 
       switch (evt.detail.type) {
+        case 'countdown':
+          dispatchEvent('text-countdown-' + evt.detail.text);
+          break;
+
+        case 'countdown_stride':
+          let vals = { 'ready': 3, 'set': 2, 'GO!': 1 };
+          dispatchEvent('text-countdown-' + vals[evt.detail.text]);
+          break;
+
+        case 'allclear':
+          dispatchEvent('text-all-clear-' + type);
+          break;
+
         case 'clear':
           dispatchEvent('text-clear-' + evt.detail.text.toLowerCase() + '-' + type);
           break;
@@ -334,7 +347,10 @@ try {
           break;
 
         case 'tspin':
-          dispatchEvent('text-t-spin-' + type);
+          if (!/^[OTIJLSZ]-spin$/.test(evt.detail.text)) break;
+          let piece = evt.detail.text[0].toLowerCase();
+          dispatchEvent('text-' + piece + '-spin-' + type);
+          dispatchEvent('text-any-spin-' + type);
           break;
 
         case 'also':
