@@ -75,7 +75,7 @@ browser.runtime.onConnect.addListener(port => {
 
         port.postMessage({
           type: 'getInfoStringResult',
-          value: `Tetr.io+ v${version} on ${name}. Features enabled: ${featureString}`
+          value: `TETR.IO PLUS v${version} on ${name}. Features enabled: ${featureString}`
         });
         break;
 

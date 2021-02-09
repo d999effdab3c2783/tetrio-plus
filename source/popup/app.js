@@ -21,6 +21,7 @@ const app = new Vue({
           <span v-if="debugMode">| Developer mode</span>
         </span>
       </h1>
+      <p class="tagline">Unofficial TETR.IO Customization Tool</p>
 
       <fieldset class="section contentPackInfo" v-if="contentPack">
         <legend>Content Pack</legend>

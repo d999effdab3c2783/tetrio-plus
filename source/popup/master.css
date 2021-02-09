@@ -19,6 +19,13 @@ h1 .version {
   font-family: monospace;
 }
 
+.tagline {
+  margin-top: 0px;
+  margin-bottom: 0px;
+  font-size: 0.75rem;
+  font-family: monospace;
+}
+
 .section {
   border: none;
   border-top: 2px solid var(--text);

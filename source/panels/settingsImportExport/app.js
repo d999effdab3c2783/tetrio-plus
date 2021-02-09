@@ -112,7 +112,7 @@ document.getElementById('export').addEventListener('click', async evt => {
 });
 
 document.getElementById('clearData').addEventListener('click', async () => {
-  if (confirm('Are you sure you want to clear all your Tetr.io+ data?')) {
+  if (confirm('Are you sure you want to clear all your TETR.IO PLUS data?')) {
     await browser.storage.local.clear();
     await browser.storage.local.set({
       version: browser.runtime.getManifest().version

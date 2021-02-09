@@ -2,11 +2,19 @@
 <html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8">
-    <title>Tetr.io+: Settings import/export</title>
+    <title>TETR.IO PLUS: Settings import/export</title>
     <style>
       body {
         max-width: 600px;
         font-family: sans-serif;
+      }
+      h1 {
+        font-size: 1.5rem;
+        margin: 0px;
+      }
+      p {
+        margin-top: 5px;
+        margin-bottom: 5px;
       }
     </style>
     <script src="./preinit.js" defer></script>
@@ -17,16 +25,10 @@
     <script src="./app.js" defer></script>
   </head>
   <body>
-    <b>Make sure you trust the content pack you're importing</b>
+    <h1>TETR.IO PLUS data management</h1>
     <p>
-      Due to the ever-changing nature of Tetr.io's source code, outdated content
-      packs can break the game in unexpected ways. Note that content packs may
-      become enourmously large with a lot of songs, and you may have trouble
-      importing packs that are more than a few hundred megabytes.
-    </p>
-    <p>
-      This is <b>only your Tetr.io+ data</b> and <em>does not include your
-      Tetrio settings</em> (e.g. DAS, ARR, graphical settings)
+      This is <b>only your TETR.IO PLUS data</b> and <em>does not include your
+      TETR.IO settings</em> (e.g. DAS, ARR, graphical settings)
     </p>
 
     <fieldset id="url-importer" style="display: none;">
@@ -36,6 +38,10 @@
     </fieldset>
     <fieldset>
       <legend>Import settings from a file</legend>
+      Warning: Outdated or malformed content packs can have weird results!
+      Notably, older <code>.tpse</code> packs are often missing sound effects
+      added to the game after they were created. Only use up-to-date content
+      packs from trusted sources. <br>
       <input type="file" id="import" multiple accept=".tpse">
     </fieldset>
     <fieldset>
@@ -94,6 +100,11 @@
       <button id="export">Download...</button>
     </fieldset>
     <fieldset>
+      <legend>Clear TETR.IO PLUS data</legend>
+      This is <b>irreversible</b>!<br>
+      <button id="clearData" style="font-weight: bold">CLEAR ALL DATA</button>
+    </fieldset>
+    <fieldset>
       <legend>Decompile sound effects</legend>
       This is not recommended because of re-encode quality loss issues.
       By the time you've exported these, they've been encoded as lossy
@@ -103,10 +114,6 @@
       so this will include unmodified base game sounds.
       <br>
       <button id="decompileSfx">Decompile sound effects</button>
-    </fieldset>
-    <fieldset>
-      <legend>Clear Tetr.io+ data</legend>
-      <button id="clearData" style="font-weight: bold">CLEAR ALL DATA</button>
     </fieldset>
   </body>
 </html>
