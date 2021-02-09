@@ -125,13 +125,17 @@ const sampleRate = 44100;
 const channels = 2;
 const quality = 1.0;
 document.getElementById('decompileSfx').addEventListener('click', async () => {
+  let { customSoundAtlas, customSounds } = await browser.storage.local.get([
+    'customSoundAtlas', 'customSounds'
+  ]);
+  if (!customSoundAtlas || !customSounds) {
+    alert('No custom sfx configured.');
+    return;
+  }
   let status = document.createElement('div');
   status.innerText = 'working on export...';
   document.body.appendChild(status);
 
-  let { customSoundAtlas, customSounds } = await browser.storage.local.get([
-    'customSoundAtlas', 'customSounds'
-  ]);
 
   const soundBuffer = await new window.OfflineAudioContext(
     channels,
@@ -171,7 +175,7 @@ document.getElementById('decompileSfx').addEventListener('click', async () => {
 
   let a = document.createElement('a');
   a.setAttribute('href', URL.createObjectURL(blob));
-  a.setAttribute('download', 'tetrio-plus-sfx-export.ogg');
+  a.setAttribute('download', 'tetrio-plus-sfx-export.zip');
   a.style.display = 'none';
   document.body.appendChild(a);
   a.click();
