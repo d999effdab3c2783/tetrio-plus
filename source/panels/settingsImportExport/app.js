@@ -119,4 +119,62 @@ document.getElementById('clearData').addEventListener('click', async () => {
     });
     alert('Data cleared');
   }
-})
+});
+
+const sampleRate = 44100;
+const channels = 2;
+const quality = 1.0;
+document.getElementById('decompileSfx').addEventListener('click', async () => {
+  let status = document.createElement('div');
+  status.innerText = 'working on export...';
+  document.body.appendChild(status);
+
+  let { customSoundAtlas, customSounds } = await browser.storage.local.get([
+    'customSoundAtlas', 'customSounds'
+  ]);
+
+  const soundBuffer = await new window.OfflineAudioContext(
+    channels,
+    sampleRate,
+    sampleRate
+  ).decodeAudioData(await (await fetch(customSounds)).arrayBuffer());
+
+  let zip = new JSZip();
+  for (let [name, [ offset, duration ]] of Object.entries(customSoundAtlas)) {
+    status.innerText = `working on export: ${name}.ogg...`;
+    // Convert milliseconds to seconds
+    offset /= 1000; duration /= 1000;
+
+    const ctx = new window.OfflineAudioContext(
+      channels,
+      sampleRate*duration,
+      sampleRate
+    );
+
+    let source = ctx.createBufferSource();
+    source.buffer = soundBuffer;
+    source.connect(ctx.destination);
+    source.start(0, offset, duration);
+    let slicedBuffer = await ctx.startRendering();
+
+    let encoder = new window.OggVorbisEncoder(sampleRate, channels, quality);
+    encoder.encode([
+      slicedBuffer.getChannelData(0),
+      slicedBuffer.getChannelData(1)
+    ]);
+    let blob = encoder.finish();
+    zip.file(name + '.ogg', blob);
+  }
+
+  status.innerText = `working on export: generating zipfile...`;
+  let blob = await zip.generateAsync({ type: 'blob' });
+
+  let a = document.createElement('a');
+  a.setAttribute('href', URL.createObjectURL(blob));
+  a.setAttribute('download', 'tetrio-plus-sfx-export.ogg');
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  status.remove();
+});

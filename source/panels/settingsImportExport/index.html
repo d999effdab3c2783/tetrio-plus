@@ -9,8 +9,11 @@
         font-family: sans-serif;
       }
     </style>
+    <script src="./preinit.js" defer></script>
     <script src="../../shared/migrate.js" defer></script>
     <script src="../../shared/tpse-sanitizer.js" defer></script>
+    <script src="../../lib/OggVorbisEncoder.js" defer></script>
+    <script src="../../lib/jszip.min.js" defer></script>
     <script src="./app.js" defer></script>
   </head>
   <body>
@@ -89,6 +92,17 @@
         checked
       >Export other misc. settings<br>
       <button id="export">Download...</button>
+    </fieldset>
+    <fieldset>
+      <legend>Decompile sound effects</legend>
+      This is not recommended because of re-encode quality loss issues.
+      By the time you've exported these, they've been encoded as lossy
+      <code>.ogg</code> at least twice.
+      Only use this option if you don't have access to the original sfx files.
+      Once compiled, it's impossible to tell if a sound effect is modded or not,
+      so this will include unmodified base game sounds.
+      <br>
+      <button id="decompileSfx">Decompile sound effects</button>
     </fieldset>
     <fieldset>
       <legend>Clear Tetr.io+ data</legend>
