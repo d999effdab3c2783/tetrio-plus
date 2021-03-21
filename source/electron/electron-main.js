@@ -29,6 +29,18 @@ function storeGet(key) {
   return val;
 }
 
+const greenlog = (...args) => console.log(
+  "\u001b[32mGL>",
+  ...args,
+  "\u001b[37m"
+);
+
+const redlog = (...args) => console.log(
+  "\u001b[31mRL>",
+  ...args,
+  "\u001b[37m"
+);
+
 function modifyWindowSettings(settings) {
   if (storeGet('transparentBgEnabled')) {
     settings.frame = false;
@@ -50,18 +62,6 @@ function modifyWindowSettings(settings) {
 
   return settings;
 }
-
-const greenlog = (...args) => console.log(
-  "\u001b[32mGL>",
-  ...args,
-  "\u001b[37m"
-);
-
-const redlog = (...args) => console.log(
-  "\u001b[31mRL>",
-  ...args,
-  "\u001b[37m"
-);
 
 const mainWindow = new Promise(res => {
   module.exports = {
@@ -190,7 +190,7 @@ ipcMain.on('tetrio-plus-cmd', async (evt, arg, arg2) => {
       });
       panel.loadURL(arg2.url);
       panel.on('closed', () => {
-        tpWindow.reload();
+        if (tpWindow) tpWindow.reload();
       });
       break;
 
