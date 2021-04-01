@@ -284,6 +284,12 @@ async function sanitizeAndLoadTPSE(data, storage) {
         if (typeof node.y != 'number')
           return `ERROR: Expected number at [].y`;
 
+        if (typeof node.audioStart != 'number')
+          return `ERROR: Expected number at [].audioStart`;
+
+        if (typeof node.audioEnd != 'number')
+          return `ERROR: Expected number at [].audioEnd`;
+
         if (typeof node.effects != 'object')
           return `ERROR: Expected object at [].effects`;
 
@@ -374,7 +380,7 @@ async function sanitizeAndLoadTPSE(data, storage) {
 
         let result5 = filterValues(node, '[]', [
           'id', 'type', 'name', 'audio', 'triggers', 'hidden', 'x', 'y',
-          'effects'
+          'effects', 'audioStart', 'audioEnd'
         ]);
         if (!result5.success) return result5.error;
       }

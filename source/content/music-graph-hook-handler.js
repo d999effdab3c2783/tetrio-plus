@@ -67,7 +67,7 @@ try {
         this.children = [];
       }
 
-      setSource(source, startTime=0, crossfade=false) {
+      setSource(source, startTime=0, audioDelay=0, crossfade=false) {
         if (this.destroyed) return;
         // console.log(`Node ${this?.source?.name} -> ${source.name}`)
         this.source = source;
@@ -76,21 +76,28 @@ try {
           clearTimeout(timeout);
         this.timeouts.length = 0;
 
-        this.restartAudio(startTime, crossfade);
+        this.restartAudio(startTime, crossfade, audioDelay);
 
         for (let trigger of this.source.triggers) {
           switch (trigger.event) {
             case 'time-passed':
-              let timeout = setTimeout(() => {
-                this.runTrigger(trigger);
-              }, trigger.value*1000);
-              this.timeouts.push(timeout);
+              let syncDelay = 30; // ms
+              this.timeouts.push(setTimeout(
+                () => this.runTrigger(trigger, syncDelay/1000),
+                trigger.value*1000 - syncDelay
+              ));
               break;
           }
         }
       }
 
-      restartAudio(startTime, crossfade=false) {
+      /**
+       * @param startTime Where to start in the given audio buffer
+       * @param crossfade Whether to use crossfade effects
+       * @param audioDelay How long to wait before starting the new audio node
+       *                   and stopping the old one.
+       */
+      restartAudio(startTime, crossfade=false, audioDelay=0) {
         if (this.destroyed) return;
         if (!this.source.audio) {
           this.runTriggersByName('node-end');
@@ -99,10 +106,6 @@ try {
 
         let audioSource = context.createBufferSource();
         audioSource.buffer = audioBuffers[this.source.audio];
-        audioSource.onended = () => {
-          if (this.audio != audioSource) return;
-            this.runTriggersByName('node-end');
-        };
 
         audioSource.playbackRate.value = this.source.effects.speed;
 
@@ -111,21 +114,21 @@ try {
 
         if (this.audio) {
           if (!crossfade) {
-            this.audio.stop();
+            this.audio.stop(context.currentTime + audioDelay);
           } else {
             let oldAudio = this.audio;
             let oldVolume = this.volume;
             gainNode.gain.value = 0;
 
-            let start = Date.now();
-            let end = start + crossfade * 1000;
+            let start = Date.now() + audioDelay;
+            let end = start + crossfade * 1000 + audioDelay;
             let startVolOld = oldVolume.gain.value;
 
             let interval = setInterval(() => {
               let progress = 1 - (end - Date.now()) / (end - start);
               if (progress > 1) {
                 clearInterval(interval);
-                oldAudio.stop();
+                oldAudio.stop(context.currentTime + audioDelay);
                 return;
               }
 
@@ -140,8 +143,22 @@ try {
         }
 
         audioSource.connect(gainNode).connect(context.destination);
-        audioSource.start(0, startTime);
-        this.startedAt = context.currentTime - startTime;
+        let start = startTime + this.source.audioStart;
+        let duration = startTime + (
+          (this.source.audioEnd || audioSource.buffer.duration) -
+          this.source.audioStart
+        );
+        audioSource.start(context.currentTime + audioDelay, start, duration);
+        this.startedAt = context.currentTime + audioDelay - startTime;
+
+        let syncDelay = 30; // ms
+        this.timeouts.push(setTimeout(
+          () => {
+            if (this.audio != audioSource) return;
+            this.runTriggersByName('node-end', syncDelay / 1000);
+          },
+          duration * 1000 - syncDelay
+        ));
 
         this.audio = audioSource;
         this.volume = gainNode;
@@ -163,13 +180,13 @@ try {
         this.children.length = 0;
       }
 
-      runTriggersByName(name) {
+      runTriggersByName(name, audioDelay=0) {
         for (let trigger of this.source.triggers)
           if (trigger.event == name)
-            this.runTrigger(trigger);
+            this.runTrigger(trigger, audioDelay);
       }
 
-      runTrigger(trigger) {
+      runTrigger(trigger, audioDelay=0) {
         // console.log(
         //   `Node ${this.source.name} running trigger ` +
         //   `${trigger.event} ${trigger.mode} ${trigger.target}`
@@ -181,11 +198,11 @@ try {
           case 'fork':
             var src = graph[trigger.target];
             if (!src) {
-              console.error("[Tetr.io+] Unknown node #" + trigger.target);
+              console.error("[TETR.IO PLUS] Unknown node #" + trigger.target);
               break;
             }
             var node = new Node();
-            node.setSource(src, startTime);
+            node.setSource(src, startTime, audioDelay);
             nodes.push(node);
             this.children.push(node);
             break;
@@ -193,11 +210,11 @@ try {
           case 'goto':
             var src = graph[trigger.target];
             if (!src) {
-              console.error("[Tetr.io+] Unknown node #" + trigger.target);
+              console.error("[TETR.IO PLUS] Unknown node #" + trigger.target);
               break;
             }
             let crossfade = trigger.crossfade && trigger.crossfadeDuration;
-            this.setSource(src, startTime, crossfade);
+            this.setSource(src, startTime, audioDelay, crossfade);
             break;
 
           case 'kill':
@@ -209,9 +226,10 @@ try {
               trigger.event == 'random-target' && trigger.mode != 'random'
             );
             if (triggers.length == 0) break;
-            this.runTrigger(triggers[
-              Math.floor(Math.random() * triggers.length)
-            ]);
+            this.runTrigger(
+              triggers[Math.floor(Math.random() * triggers.length)],
+              delay
+            );
             break;
         }
       }
@@ -307,7 +325,7 @@ try {
             }
           }
 
-          node.runTrigger(trigger);
+          node.runTrigger(trigger, 0);
         }
       }
     }

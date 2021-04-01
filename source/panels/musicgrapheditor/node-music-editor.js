@@ -16,7 +16,7 @@ export default {
         </option>
       </select>
       <div v-if="music.length == 0">
-        (Add music in the main tetrio+ menu)
+        (Add music in the main TETR.IO PLUS menu)
       </div>
       <div v-if="node.audio != null">
         <div class="form-control">
@@ -39,8 +39,25 @@ export default {
             min="0"
             max="10"
           />x
-          <span v-if="node.effects.speed != 1" class="form-control-value-display">
+          <span class="form-control-value-display">
             (affects pitch)
+          </span>
+        </div>
+        <div class="form-control">
+          Start position <input
+            type="number"
+            v-model.number="node.audioStart"
+            min="0"
+          />s
+        </div>
+        <div class="form-control">
+          End position <input
+            type="number"
+            v-model.number="node.audioEnd"
+            min="0"
+          />s
+          <span class="form-control-value-display">
+            (0 = end of song)
           </span>
         </div>
       </div>

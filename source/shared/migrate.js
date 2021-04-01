@@ -105,7 +105,32 @@ var migrate = (() => {
         skinSvg: await dataSource.get('skin')
       });
     }
-  })
+  });
+
+  /*
+    v0.17.0 - Music graph update 2
+    Added
+  */
+  migrations.push({
+    version: '0.17.0',
+    run: async dataSource => {
+      await dataSource.set({ version: '0.17.0' });
+
+      let { musicGraph: json } = await dataSource.get('musicGraph');
+      if (json) {
+        let musicGraph = JSON.parse(json);
+        console.log("migrator parsed", musicGraph, "from", json);
+
+        let x = 0;
+        for (let node of musicGraph) {
+          node.audioStart = 0;
+          node.audioEnd = 0;
+        }
+
+        await dataSource.set({ musicGraph: JSON.stringify(musicGraph) });
+      }
+    }
+  });
 
   return async function migrate(dataSource) {
     let { version: initialVersion} = await dataSource.get('version');
