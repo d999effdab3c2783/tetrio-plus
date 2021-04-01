@@ -17,15 +17,12 @@ const manifest = require('../../desktop-manifest.js');
 
 const Store = require('electron-store');
 function storeGet(key) {
-  console.log("storeget", key)
   if (!(/^[A-Za-z0-9\-_]+$/.test(key)))
     throw new Error("Invalid key: " + key);
-  console.log("getting", 'tpkey-'+key)
   let val = new Store({
     name: 'tpkey-'+key,
     cwd: 'tetrioplus'
   }).get('value');
-  console.log('ok', val);
   return val;
 }
 
@@ -260,9 +257,10 @@ app.whenReady().then(async () => {
   protocol.registerBufferProtocol('tetrio-plus', (req, callback) => {
     (async () => {
       greenlog("tetrio plus request", req.method, req.url);
-      let url = 'https://tetr.io/' + req.url.substring(
+      const originalUrl = 'https://tetr.io/' + req.url.substring(
         'tetrio-plus://tetrio-plus/'.length
       );
+      const url = originalUrl.split('?')[0]; // query params break some stuffs
 
       // greenlog("Filtered potential handlers", rewriteHandlers, '->', handlers);
 
@@ -272,7 +270,8 @@ app.whenReady().then(async () => {
       // Used to fetch data from the source (https://tetr.io/) later on
       // if data isn't already provided internally.
       async function fetchData() {
-        data = await new Promise(resolve => https.get(url, response => {
+        greenlog("Fetching data", originalUrl);
+        data = await new Promise(resolve => https.get(originalUrl, response => {
           contentType = response.headers['content-type'];
           greenlog("http response ", contentType);
           let raw = [];
@@ -315,11 +314,7 @@ app.whenReady().then(async () => {
       const getDataSourceForDomain = require(
         '../bootstrap/domain-specific-storage-fetcher'
       );
-      const dataSource = await getDataSourceForDomain(url);
-
-      const originalUrl = url;
-      if (url.indexOf('?') > 0)
-        url = url.split('?')[0]; // query params break some stuffs
+      const dataSource = await getDataSourceForDomain(originalUrl);
 
       let handlers = rewriteHandlers.filter(handler => {
         return matchesGlob(handler.url, url);
