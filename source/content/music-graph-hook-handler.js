@@ -230,7 +230,7 @@ try {
             if (triggers.length == 0) break;
             this.runTrigger(
               triggers[Math.floor(Math.random() * triggers.length)],
-              delay
+              15/1000
             );
             break;
         }
