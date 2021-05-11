@@ -23,9 +23,12 @@ createRewriteFilter("Tetrio.js Music", "https://tetr.io/js/tetrio.js*", {
         Tetr.io concatenates the song name as `/res/bgm/${songname}.mp3`, so
         we add an extra query parameter to "comment out" the extra .mp3
       */
-      newSongObject[
-        `akai-tsuchi-wo-funde.mp3?song=${song.id}&tetrioplusinjectioncomment=`
-      ] = song.metadata;
+      let key = `akai-tsuchi-wo-funde.mp3?song=${song.id}&tetrioplusinjectioncomment=`;
+      if (song.metadata.genre == 'OVERRIDE') {
+        newSongObject[song.override] = song.metadata;
+      } else {
+        newSongObject[key] = song.metadata;
+      }
     }
 
     let replaced = false;
@@ -73,6 +76,7 @@ createRewriteFilter("Tetrio.js Music", "https://tetr.io/js/tetrio.js*", {
           switch (song.genre) {
             case 'INTERFACE':
             case 'DISABLED':
+            case 'OVERRIDE':
               break;
 
             case 'CALM':

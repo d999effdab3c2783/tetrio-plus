@@ -56,11 +56,11 @@ export default {
           <input type="text" v-model="song.metadata.jpartist"></input>
         </div>
         <div class="option-pair" title="The genre determines where the song will play">
-          <label>Genre</label>
+          <label>Song pool</label>
           <select v-model="song.metadata.genre">
             <option value="CALM">Calm</option>
             <option value="BATTLE">Battle</option>
-            <option value="INTERFACE">Interface</option>
+            <option value="INTERFACE" disabled>Interface (Doesn't do anything)</option>
             <option value="OVERRIDE">Override</option>
             <option value="DISABLED">Disabled/Music graph only</option>
           </select>
