@@ -45,6 +45,15 @@ const app = new Vue({
         </fieldset>
       </div>
 
+      <fieldset>
+        <legend>TPSE files</legend>
+        You can import <code>.tpse</code> files through the
+        <code>Manage data/Import TPSE</code> submenu accessible from the main
+        TETR.IO PLUS menu.
+        The sfx editor is only for creating sound packs from unpacked audio
+        files (<code>.wav</code>, <code>.ogg</code>, etc.)
+      </fieldset>
+
       <fieldset v-for="sprite of sprites">
         <legend>{{ sprite.name }}</legend>
         <div v-if="sprite.error" :title="sprite.error">
