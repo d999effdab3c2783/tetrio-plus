@@ -5,20 +5,27 @@ import path from 'path';
 import fs from 'fs';
 import { Canvas, Image } from 'canvas';
 import { Blob, FileReader } from 'vblob';
+import ffmpeg from 'fluent-ffmpeg';
+import { ReadableStreamBuffer, WritableStreamBuffer } from 'stream-buffers';
 
 global.self = global;
 global.OggVorbisEncoderConfig = { TOTAL_MEMORY: 64 * 1024**2 };
-require('../source/lib/OggVorbisEncoder.js');
+global.print = console.error;
+let ove_path = path.join(__dirname, '../source/lib/OggVorbisEncoder.js');
+let ove = fs.readFileSync(ove_path);
+new Function(ove)();
 
-require('vorbis.js');
-import decode from 'audio-decode';
-
-require('./decoders.js');
 
 // Web API polyfills
 Object.assign(global, {
   Blob,
   window: {
+    // Not actually polyfills but used to feature-detect & polyfill other stuff
+    IS_NODEJS_POLYFILLED: true,
+    ffmpeg,
+    ReadableStreamBuffer,
+    WritableStreamBuffer,
+
     Blob,
     FileReader,
     OggVorbisEncoder,

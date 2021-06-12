@@ -1,9 +1,36 @@
 const sampleRate = 44100;
 const channels = 2;
 
-const decoderCtx = new window.OfflineAudioContext(channels, sampleRate, sampleRate);
-
 export async function decodeAudio(buffer) {
+  if (window.IS_NODEJS_POLYFILLED) {
+    let input = new window.ReadableStreamBuffer({
+      frequency: 1,
+      chunkSize: 1024*16
+    });
+    let output = new window.WritableStreamBuffer({
+      initialSize: buffer.length * 10,
+      incrementAmount: buffer.length * 10
+    });
+    await new Promise((res, rej) => {
+      let proc = window.ffmpeg({ source: input, logger: console })
+        .toFormat('wav')
+        .on('stderr', line => console.error('FFMPEG>' + line))
+        .on('end', () => {
+          console.log('ffmpeg done');
+          res();
+        })
+        .on('error', ex => {
+          console.error(ex);
+          rej(ex);
+        })
+        .pipe(output);
+      window.proc = proc;
+      input.put(Buffer.from(buffer));
+      input.stop();
+    });
+    buffer = output.getContents();
+  }
+  const decoderCtx = new window.OfflineAudioContext(channels, sampleRate, sampleRate);
   return await decoderCtx.decodeAudioData(buffer);
 }
 

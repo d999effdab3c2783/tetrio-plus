@@ -9,6 +9,15 @@ import path from 'path';
 import mime from 'mime-types';
 import { Image } from 'canvas';
 
+process.on('uncaughtException', ex => {
+  console.error('uncaughtException', ex);
+  process.exit(1);
+});
+process.on('unhandledRejection', (ex, pr) => {
+  console.error('unhandledRejection', ex, pr);
+  process.exit(1);
+});
+
 function forceInt(value) {
   let int = parseInt(value);
   if (isNaN(int)) throw new Error('Expected numeric delay value');
@@ -18,6 +27,7 @@ const manifest = require('../manifest.json');
 program.version(manifest.version);
 program.option('-c, --no-combine', 'Don\'t combine animated skin frames');
 program.option('-d, --delay <number>', 'Animated skin frame delay', forceInt, 0);
+program.option('-o, --output <number>', 'Output file');
 
 program
   .command('import <files...>')
@@ -48,10 +58,15 @@ program
       combine: program.combine
     }).catch(ex => {
       console.error("Error: " + ex);
-      // process.exit(1);
+      process.exit(1);
     });
 
-    console.log(JSON.stringify(tpse, null, 2));
+    let compiled = JSON.stringify(tpse, null, 2);
+    if (program.output) {
+      fs.writeFileSync(program.output, compiled);
+    } else {
+      console.log(compiled);
+    }
     console.error("Done");
   });
 
