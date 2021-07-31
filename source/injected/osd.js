@@ -4,17 +4,28 @@
   scripts, and I need to call a function on an event's detail object
 */
 (async () => {
+  console.log('loading osd');
   [...document.getElementsByClassName('tetrio-plus-osd')].forEach(c => c.remove());
-
-  const baseIconURL = await new Promise(res => {
-    window.addEventListener("baseIconURL", event => {
-      res(event.detail);
-    }, { once: true });
+  console.log('fetching iconset');
+  const { iconSet, baseIconURL } = await new Promise(res => {
+    window.addEventListener(
+      "baseIconURL",
+      evt => {
+        console.log('recieved event');
+        // json stringify/parse to prevent
+        // `Permission denied to access property "then"`
+        // even though you can send objects through
+        res(JSON.parse(evt.detail));
+      },
+      { once: true }
+    );
+    console.log('dispatching event');
     window.dispatchEvent(new CustomEvent("getBaseIconURL"));
   });
 
   let osd = document.createElement('div');
   osd.classList.toggle('tetrio-plus-osd', true);
+  osd.classList.toggle('icon-set-' + iconSet, true);
   document.body.appendChild(osd);
 
   let buttons = [];
@@ -24,13 +35,19 @@
     elem.classList.toggle('tetrio-plus-osd-key', true);
     elem.classList.toggle(name, true);
     elem.style.gridArea = name;
+
     let icon = `url("${baseIconURL}icon-${tetrioName}.png")`;
     elem.style.setProperty('background-image', icon);
     elem.setActive = function(active) {
-      let suffix = active ? '-pressed' : '';
-      let icon = `url("${baseIconURL}icon-${tetrioName}${suffix}.png")`;
-      elem.style.setProperty('background-image', icon);
+      if (iconSet == 'old') {
+        elem.classList.toggle('active', active);
+      } else {
+        let suffix = active ? '-pressed' : '';
+        let icon = `url("${baseIconURL}icon-${tetrioName}${suffix}.png")`;
+        elem.style.setProperty('background-image', icon);
+      }
     }
+
     elem.setActive(false);
     osd.appendChild(elem);
     buttons.push(elem);
@@ -52,9 +69,15 @@
 
   let resizeHandle = document.createElement('div');
   resizeHandle.classList.toggle('tetrio-plus-osd-resize-handle');
-  let resizeIcon = `url("${baseIconURL}resize.png")`;
-  resizeHandle.style.setProperty('background-image', resizeIcon);
   handleContainer.appendChild(resizeHandle);
+
+  if (iconSet == 'old') {
+    resizeHandle.innerText = '🡦';
+  } else {
+    let resizeIcon = `url("${baseIconURL}resize.png")`;
+    resizeHandle.style.setProperty('background-image', resizeIcon);
+  }
+
 
   // too lazy to write hooks back to browser storage from an injected script
   const fixedAspect = 3.125;
@@ -157,4 +180,4 @@
     game.bind(onGameKey);
     // console.log("Bound game", game);
   });
-})();
+})().catch(ex => console.error(ex));

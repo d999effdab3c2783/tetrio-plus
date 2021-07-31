@@ -121,6 +121,11 @@ const app = new Vue({
                 Enable key OSD
               </span>
             </option-toggle>
+            <option-toggle storageKey="enableOSD" mode="show">
+              <option-toggle storageKey="useOldOSDIcons">
+                Use old OSD icons
+              </option-toggle>
+            </option-toggle>
           </div>
         </fieldset>
         <fieldset class="section">

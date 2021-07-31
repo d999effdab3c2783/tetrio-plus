@@ -29,7 +29,7 @@
   position: absolute;
   display: inline-block;
   padding-right: 4px;
-  
+
   width: 10px;
   height: 10px;
   right: 0px;
@@ -42,6 +42,12 @@
   background-position: center;
   background-origin: content-box;
   margin: 1px;
+}
+
+.icon-set-old .tetrio-plus-osd-key {
+  border: 1px solid white;
+  background-size: contain;
+  padding: 10%;
 }
 
 .tetrio-plus-osd-key.active {
