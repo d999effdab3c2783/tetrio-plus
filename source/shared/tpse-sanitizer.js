@@ -62,6 +62,7 @@ async function sanitizeAndLoadTPSE(data, storage) {
     bypassBootstrapper: parseBoolean('bypassBootstrapper'),
     enableCustomMaps: parseBoolean('enableCustomMaps'),
     advancedSkinLoading: parseBoolean('advancedSkinLoading'),
+    windowTitleStatus: electronOnly(parseBoolean('windowTitleStatus')),
     skinSvg: async svgText => {
       try {
         let parser = new DOMParser();
