@@ -159,6 +159,14 @@ const app = new Vue({
                 Hide Tetrio Plus window on startup
               </span>
             </option-toggle>
+            
+            <option-toggle storageKey="windowTitleStatus" v-if="isElectron">
+              <span :title="(
+                'Uses your Discord rich presence data to append a status to the window title.'
+              )">
+                Update the window title according to in-game status
+              </span>
+            </option-toggle>
 
             <div v-if="isElectron">
               <option-toggle inline storageKey="blockAds">

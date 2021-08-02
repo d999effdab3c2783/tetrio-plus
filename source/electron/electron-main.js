@@ -123,6 +123,15 @@ function showError(title, ...lines) {
   });
 }
 
+// Discord Rich Presence
+ipcMain.on('presence', async (e, arg) => {
+  let mainWin = await mainWindow;
+  if (mainWin) {
+    mainWin.setTitle('TETR.IO'); // this will conflict if tetrio ever decides to switch the title itself. oh well
+    if (arg.state && storeGet('windowTitleStatus')) mainWin.setTitle(`TETR.IO - ${arg.state}`);
+  }
+});
+
 ipcMain.on('tetrio-plus-cmd', async (evt, arg, arg2) => {
   switch(arg) {
     case 'uninstall':
