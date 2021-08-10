@@ -283,7 +283,7 @@ async function sanitizeAndLoadTPSE(data, storage) {
             return `ERROR: Expected string or null at [].background`;
 
           let bg = importData['background-' + node.background];
-          if (typeof bg != 'string' || !/^data:audio\/.+?;base64,/.test(bg))
+          if (typeof bg != 'string' || !/^data:.+?\/.+?;base64,/.test(bg))
             return `ERROR: Missing/invalid background file ${node.background}`;
           toSet['background-' + node.background] = bg;
         }
@@ -370,7 +370,7 @@ async function sanitizeAndLoadTPSE(data, storage) {
           let result1 = filterValues(trigger, '[].triggers[]', [
             'mode', 'target', 'event', 'preserveLocation', 'value',
             'valueOperator', 'anchor', 'crossfade', 'crossfadeDuration',
-            'locationMultiplier'
+            'locationMultiplier', 'dispatchEvent'
           ]);
           if (!result1.success) return result1.error;
 
@@ -396,7 +396,7 @@ async function sanitizeAndLoadTPSE(data, storage) {
 
         let result5 = filterValues(node, '[]', [
           'id', 'type', 'name', 'audio', 'triggers', 'hidden', 'x', 'y',
-          'effects', 'audioStart', 'audioEnd'
+          'effects', 'audioStart', 'audioEnd', 'background'
         ]);
         if (!result5.success) return result5.error;
       }

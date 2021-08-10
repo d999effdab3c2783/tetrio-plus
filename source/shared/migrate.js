@@ -153,7 +153,7 @@ var migrate = (() => {
         let musicGraph = JSON.parse(json);
         for (let node of musicGraph) {
           node.background = null;
-          for (let trigger of node) {
+          for (let trigger of node.triggers) {
             trigger.dispatchEvent = '';
           }
         }
