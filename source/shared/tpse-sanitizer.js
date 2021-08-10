@@ -63,6 +63,7 @@ async function sanitizeAndLoadTPSE(data, storage) {
     enableCustomMaps: parseBoolean('enableCustomMaps'),
     advancedSkinLoading: parseBoolean('advancedSkinLoading'),
     windowTitleStatus: electronOnly(parseBoolean('windowTitleStatus')),
+    musicGraphBackground: parseBoolean('musicGraphBackground'),
     skinSvg: async svgText => {
       try {
         let parser = new DOMParser();
