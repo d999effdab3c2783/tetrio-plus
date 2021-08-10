@@ -77,6 +77,15 @@ function musicGraph(module) {
     backgroundsEnabled: musicGraphBackground
   };
 
+  // cache images so they can appear instantly
+  let cache = [];
+  for (let el of Object.values(graph)) {
+    if (!el.background) continue;
+    let img = new Image();
+    img.src = '/res/bg/1.jpg?bgId=' + el.background;
+    cache.push(img);
+  }
+
   for (let module of modules)
     module(musicGraphData);
 
