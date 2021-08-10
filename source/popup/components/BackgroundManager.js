@@ -40,11 +40,17 @@ export default {
                   'Custom animated backgrounds are implemented differently from ' +
                   'regular backgrounds, and you can\\'t have more than one at a time. ' +
                   'Animated backgrounds are incompatible with normal backgrounds, ' +
-                  'and Tetr.io+ custom backgrounds will not load while an animated ' +
-                  'background is enabled.'
+                  'and TETR.IO PLUS custom backgrounds will not load while an ' +
+                  'animated background is enabled.'
                 )"
               >⚠️</span>
             </option-toggle>
+          </option-toggle>
+          <option-toggle inline storageKey="musicGraphBackground" mode="show">
+            <span
+              class="warning-icon"
+              title="Incompatible with music graph backgrounds"
+            >❌</span>
           </option-toggle>
         </option-toggle>
 
@@ -87,6 +93,15 @@ export default {
           )">
             Use opaque background
           </span>
+        </option-toggle>
+
+        <option-toggle storageKey="musicGraphBackground">
+          <span :title="(
+            'Enables setting backgrounds from the music graph. ' +
+            'All normal backgrounds will be available in the music graph. ' +
+            'This overrides all other possible background options.'
+          )">
+          Music graph backgrounds (EXPERIMENTAL)
         </option-toggle>
       </div>
 

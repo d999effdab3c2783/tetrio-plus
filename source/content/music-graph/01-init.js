@@ -10,9 +10,17 @@ function musicGraph(module) {
   let { tetrioPlusEnabled } = await storage.get('tetrioPlusEnabled');
   if (!tetrioPlusEnabled) return;
   let {
-    music, musicGraph, musicEnabled, musicGraphEnabled
+    music,
+    musicGraph,
+    musicEnabled,
+    musicGraphEnabled,
+    musicGraphBackground
   } = await storage.get([
-    'music', 'musicGraph', 'musicEnabled', 'musicGraphEnabled'
+    'music',
+    'musicGraph',
+    'musicEnabled',
+    'musicGraphEnabled',
+    'musicGraphBackground'
   ]);
   if (!musicEnabled || !musicGraphEnabled || !musicGraph)
     return;
@@ -57,7 +65,7 @@ function musicGraph(module) {
     }
     return globalVolume;
   }
-  
+
   const musicGraphData = {
     nodes: [],
     audioContext,
@@ -65,7 +73,8 @@ function musicGraph(module) {
     audioBuffers,
     eventValueExtendedModes,
     eventValueEnabled,
-    getGlobalVolume
+    getGlobalVolume,
+    backgroundsEnabled: musicGraphBackground
   };
 
   for (let module of modules)

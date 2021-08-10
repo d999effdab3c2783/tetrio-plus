@@ -277,6 +277,16 @@ async function sanitizeAndLoadTPSE(data, storage) {
           toSet['song-' + node.audio] = mp3;
         }
 
+        if (node.background !== null) {
+          if (typeof node.background != 'string')
+            return `ERROR: Expected string or null at [].background`;
+
+          let bg = importData['background-' + node.background];
+          if (typeof bg != 'string' || !/^data:audio\/.+?;base64,/.test(bg))
+            return `ERROR: Missing/invalid background file ${node.background}`;
+          toSet['background-' + node.background] = bg;
+        }
+
         if (typeof node.hidden != 'boolean')
           return `ERROR: Expected boolean value at [].hidden`;
 
@@ -475,7 +485,7 @@ async function sanitizeAndLoadTPSE(data, storage) {
     if (data[name] !== null && data[name] !== undefined) {
       results.push(name + ' | ' + await importer(data[name], data));
     } else {
-      results.push(name + ' | Ignored: No data in pack');
+      // results.push(name + ' | Ignored: No data in pack');
     }
   }
 

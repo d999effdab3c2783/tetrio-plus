@@ -57,6 +57,7 @@ const app = new Vue({
         type: 'normal',
         name: 'new node ' + this.maxId,
         audio: null,
+        background: null,
         audioStart: 0,
         audioEnd: 0,
         triggers: [],

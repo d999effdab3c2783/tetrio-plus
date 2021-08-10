@@ -7,6 +7,7 @@
 createRewriteFilter("Tetrio.js BG", "https://tetr.io/js/tetrio.js*", {
   enabledFor: async (storage, request) => {
     let res = await storage.get([
+      'musicGraphBackground',
       'transparentBgEnabled',
       'animatedBackground',
       'animatedBgEnabled',
@@ -14,12 +15,18 @@ createRewriteFilter("Tetrio.js BG", "https://tetr.io/js/tetrio.js*", {
       'bgEnabled'
     ]);
 
+    if (res.musicGraphBackground)
+      return true;
+
     if (res.transparentBgEnabled)
       return true;
 
-    if (!res.bgEnabled) return false;
+    if (!res.bgEnabled)
+      return false;
+
     if (res.animatedBgEnabled && res.animatedBackground)
       return true;
+
     if (res.backgrounds && res.backgrounds.length > 0)
       return true;
 
@@ -27,6 +34,7 @@ createRewriteFilter("Tetrio.js BG", "https://tetr.io/js/tetrio.js*", {
   },
   onStop: async (storage, url, src, callback) => {
     let res = await storage.get([
+      'musicGraphBackground',
       'transparentBgEnabled',
       'animatedBgEnabled',
       'animatedBackground',
@@ -34,7 +42,9 @@ createRewriteFilter("Tetrio.js BG", "https://tetr.io/js/tetrio.js*", {
     ]);
 
     let backgrounds = [];
-    if (res.transparentBgEnabled) {
+    if (res.musicGraphBackground) {
+      backgrounds.push({ id: 'transparent' });
+    } else if (res.transparentBgEnabled) {
       backgrounds.push({ id: 'transparent' });
     } else if (res.animatedBgEnabled && res.animatedBackground) {
       backgrounds.push({ id: 'transparent' });

@@ -1,7 +1,11 @@
 (async () => {
   let storage = await getDataSourceForDomain(window.location);
   let res = await storage.get([
-    'bgEnabled', 'animatedBgEnabled', 'transparentBgEnabled', 'tetrioPlusEnabled'
+    'bgEnabled',
+    'animatedBgEnabled',
+    'transparentBgEnabled',
+    'tetrioPlusEnabled',
+    'musicGraphBackground'
   ]);
   if (!res.tetrioPlusEnabled) return;
 
@@ -14,7 +18,7 @@
     document.body.appendChild(draggable);
   }
 
-  if (res.bgEnabled && res.animatedBgEnabled) {
+  if (!res.musicGraphBackground && res.bgEnabled && res.animatedBgEnabled) {
     let canvas = document.getElementById('pixi');
     canvas.style.backgroundImage = 'url(/res/bg/1.jpg?bgId=animated)';
     canvas.style.backgroundPosition = 'center';

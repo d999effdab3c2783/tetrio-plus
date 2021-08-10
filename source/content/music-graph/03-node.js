@@ -6,7 +6,8 @@ musicGraph(musicGraph => {
     eventValueEnabled,
     eventValueExtendedModes,
     audioBuffers,
-    getGlobalVolume
+    getGlobalVolume,
+    backgroundsEnabled
   } = musicGraph;
 
   /**
@@ -21,6 +22,11 @@ musicGraph(musicGraph => {
   const SYNC_DELAY = 30;
   const SHORT_SYNC_DELAY = 15;
   let nonce = 0;
+
+  const gameCanvas = document.getElementById('pixi');
+  gameCanvas.style.backgroundPosition = 'center';
+  gameCanvas.style.backgroundSize = 'cover';
+
   /**
    * If the nodes in the music graphs are like classes, then the Node is
    * an instance of one of those classes. It has internal state and uses
@@ -37,10 +43,24 @@ musicGraph(musicGraph => {
       this.children = [];
     }
 
+    static recalculateBackground() {
+      if (!backgroundsEnabled) return;
+
+      let count = nodes.filter(node => node.source.background).length;
+      let backgrounds = nodes
+        .filter(node => node.source.background)
+        .map(node => `url(/res/bg/1.jpg?bgId=${node.source.background})`)
+        .reverse()
+        .join(',');
+
+      gameCanvas.style.backgroundImage = backgrounds || null;
+    }
+
     setSource(source, startTime=0, audioDelay=0, crossfade=false) {
       if (this.destroyed) return;
       // console.log(`Node ${this?.source?.name} -> ${source.name}`)
       this.source = source;
+      Node.recalculateBackground();
 
       for (let timeout of this.timeouts)
         clearTimeout(timeout);
@@ -146,6 +166,7 @@ musicGraph(musicGraph => {
       for (let child of this.children)
         child.runTriggersByName('parent-node-destroyed');
       this.children.length = 0;
+      Node.recalculateBackground();
     }
 
     runTriggersByName(name, audioDelay=0) {
@@ -172,6 +193,7 @@ musicGraph(musicGraph => {
           var node = new Node();
           node.setSource(src, startTime, audioDelay);
           nodes.push(node);
+          Node.recalculateBackground();
           this.children.push(node);
           break;
 

@@ -141,6 +141,7 @@ var migrate = (() => {
     v0.18.0 - Small music graph update + general bugfixes
     added:
     - musicGraph[].triggers[].dispatchEvent
+    - musicGraph[].background
   */
   migrations.push({
     version: '0.18.0',
@@ -150,9 +151,12 @@ var migrate = (() => {
       let { musicGraph: json } = await dataSource.get('musicGraph');
       if (json) {
         let musicGraph = JSON.parse(json);
-        for (let node of musicGraph)
-          for (let trigger of node)
+        for (let node of musicGraph) {
+          node.background = null;
+          for (let trigger of node) {
             trigger.dispatchEvent = '';
+          }
+        }
         await dataSource.set({ musicGraph: JSON.stringify(musicGraph) });
       }
     }
