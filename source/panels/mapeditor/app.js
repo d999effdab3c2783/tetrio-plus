@@ -50,11 +50,19 @@ const app = new Vue({
         <button @click="setHoldToTool()" :disabled="tool.length != 1">
           Set selected
         </button>
+        <br />
+        Width:
+        <input type="number" v-model.number="width" min="1" />
+        <br />
+        Height:
+        <input type="number" v-model.number="height" min="1" />
       </div>
     </div>
   `,
   data: {
-    map: new Array(40).fill(0).map(el => new Array(10).fill(0).map(el => ({ mino: 'empty' }))),
+    width: 10,
+    height: 40,
+    map: [],
     tools: ['i', 'o', 'l', 'j', 'z', 's', 't', 'empty', 'garbage', 'darkgarbage'],
     bag: "",
     hold: null,
@@ -63,6 +71,17 @@ const app = new Vue({
     clicking: false,
     mapString: "",
     modified: false
+  },
+  mounted() {
+    document.addEventListener('mousedown', () => this.startEditing());
+    document.addEventListener('mouseup', () => this.endEditing());
+    this.regenerateMap();
+    this.recalculateMapString();
+    let match = /map=([^&]+)/.exec(window.location.search);
+    if (match) {
+      this.loadMapString(decodeURIComponent(match[1]));
+      this.recalculateMapString();
+    }
   },
   watch: {
     mapString(val) {
@@ -82,9 +101,26 @@ const app = new Vue({
         val = "";
       if (this.hold != val)
         this.hold = val;
+    },
+    width() {
+      this.regenerateMap()
+    },
+    height() {
+      this.regenerateMap()
     }
   },
   methods: {
+    regenerateMap() {
+      let oldHeight = this.map.length;
+      this.map = new Array(this.height).fill(0).map((el, y) => {
+        return new Array(this.width).fill(0).map((el, x) => {
+          let ny = y + oldHeight - this.height;
+          if (this.map[ny]?.[x]) return this.map[ny][x];
+          return { mino: 'empty' }
+        });
+      });
+      this.deferRecalcMapString();
+    },
     startEditing() {
       this.clicking = true;
       this.modified = false;
@@ -158,12 +194,4 @@ const app = new Vue({
   }
 });
 
-document.addEventListener('mousedown', () => app.startEditing());
-document.addEventListener('mouseup', () => app.endEditing());
-app.recalculateMapString();
-let match = /map=([^&]+)/.exec(window.location.search);
-if (match) {
-  app.loadMapString(decodeURIComponent(match[1]));
-  app.recalculateMapString();
-}
 app.$mount('#app');
