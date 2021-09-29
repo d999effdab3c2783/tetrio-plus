@@ -1,6 +1,6 @@
 export const name = 'TETR.IO v6.1.0 connected animated';
 export const desc = 'A complex 1024x1024 gif or multiple images with 48px by 48px blocks (see wiki)';
-export const extrainputs = [];
+export const extrainputs = ['delay'];
 
 import { KEYS, Validator } from './util.js';
 export function test(files) {
@@ -22,20 +22,20 @@ export async function load(files, storage, options) {
     files = await splitgif(files[0], options);
 
   let canvas = window.document.createElement('canvas');
-  canvas.width = 2048;
-  canvas.height = 2048 * files.length;
+  canvas.width = 1024 * Math.min(16, files.length);
+  canvas.height = 1024 * Math.ceil(files.length/16);
   let ctx = canvas.getContext('2d');
 
   for (let i = 0; i < files.length; i++)
-    ctx.drawImage(files[i].image, 0, i * 2048, 2048, 2048);
+    ctx.drawImage(files[i].image, i%16 * 1024, Math.floor(i/16) * 1024, 1024, 1024);
+
+  console.log({ files, canvas, data: canvas.toDataURL('image/png') });
 
   await loadconnraster([files[0]], storage); // non-animated fallback
   await storage.set({
     skinAnim: canvas.toDataURL('image/png'),
     skinAnimMeta: {
       frames: files.length,
-      frameWidth: 2048,
-      frameHeight: 2048,
       delay: options.delay || 30
     }
   });

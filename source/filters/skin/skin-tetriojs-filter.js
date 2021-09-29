@@ -1,10 +1,20 @@
-createRewriteFilter("UHD Forcer", "https://tetr.io/js/tetrio.js*", {
+async function getRequiredResolution(storage) {
+  let res = await storage.get([
+    'skin', 'ghost', 'advancedSkinLoading', 'skinAnimMeta', 'ghostAnimMeta'
+  ]);
+  if (res.advancedSkinLoading && (res.skinAnimMeta || res.ghostAnimMeta))
+    return 'hd';
+  if (res.skin || res.ghost)
+    return 'uhd';
+  return null;
+}
+createRewriteFilter("UHD/HD forcer", "https://tetr.io/js/tetrio.js*", {
   enabledFor: async (storage, request) => {
-    let res = await storage.get(['skin', 'ghost']);
-    return res.skin || res.ghost;
+    return await getRequiredResolution(storage) != null;
   },
   onStop: async (storage, url, src, callback) => {
-    let newSrc = src.replace(/["']uhd["']\s*:\s*["']hd["']/, "'uhd':'uhd'")
+    let res = await getRequiredResolution(storage);
+    let newSrc = src.replace(/["']uhd["']\s*:\s*["']hd["']/, `'${res}':'${res}'`)
     if (newSrc == src) console.warn('UHD Disabler hook broke (1/1)');
     callback({ type: 'text/javascript', data: newSrc, encoding: 'text' });
   }
@@ -22,10 +32,11 @@ createRewriteFilter("Advanced skin loader", "https://tetr.io/js/tetrio.js*", {
   onStop: async (storage, url, src, callback) => {
     try {
       const res = await storage.get(['skinAnimMeta', 'ghostAnimMeta']);
+      console.log('res', res);
 
-      // Load animated 2x spritesheet
+      // Load animated spritesheet
       src = src.replace(
-        /(\/res\/skins\/(minos|ghost)\/connected.2x.png)/g,
+        /(\/res\/skins\/(minos|ghost)\/connected.png)/g,
         "$1?animated"
       );
 
@@ -34,10 +45,13 @@ createRewriteFilter("Advanced skin loader", "https://tetr.io/js/tetrio.js*", {
       var match = false;
       src = src.replace(rgx, ($, pre, a1, a2, a3, a4, a5, a6, loopBody) => {
         var rgx2 = /(\w+\[\w+\])\s*=\s*new\s*PIXI\.Texture\((\w+),\s*new\s*PIXI.Rectangle\(([^,]+),([^,]+),([^,]+),([^,]+)\)\)/;
-        let res = rgx2.exec(loopBody);
-        if (!res) return;
-        let [$2, target, baseTexArg, rectArg1, rectArg2, rectArg3, rectArg4] = res;
+        let res2 = rgx2.exec(loopBody);
+        if (!res2) return;
+        let [$2, target, baseTexArg, rectArg1, rectArg2, rectArg3, rectArg4] = res2;
         loopBody = (`
+          let { frames, delay } = ${b64Recode(res.skinAnimMeta || {})};
+          let { frames: gframes, delay: gdelay } = ${b64Recode(res.ghostAnimMeta || {})};
+
           let first = new PIXI.Texture(
             ${baseTexArg},
             new PIXI.Rectangle(${rectArg1}, ${rectArg2}, ${rectArg3}, ${rectArg4})
@@ -47,14 +61,28 @@ createRewriteFilter("Advanced skin loader", "https://tetr.io/js/tetrio.js*", {
             ${baseTexArg}?.resource?.url &&
             ${baseTexArg}.resource.url.indexOf('ghost') !== -1
           );
-          let scale = ghost ? 1024 : 2048;
+          if (ghost) {
+            frames = gframes;
+            delay = gdelay;
+          }
+          if (ghost === undefined) {
+            frames = 1;
+            delay = 0
+            //console.log("TETR.IO PLUS: Unknown skin type, bailing animation.");
+          }
+          let scale = ghost ? 512 : 1024;
 
           first.tetrioPlusAnimatedArray = [];
-          for (let _i = 0; _i < Math.max(${baseTexArg}.height / scale, 1); _i++) {
+          for (let _i = 0; _i < frames; _i++) {
             first.tetrioPlusIsGhost = ghost;
             first.tetrioPlusAnimatedArray.push(new PIXI.Texture(
               ${baseTexArg},
-              new PIXI.Rectangle(${rectArg1}, ${rectArg2} + _i * scale, ${rectArg3}, ${rectArg4})
+              new PIXI.Rectangle(
+                ${rectArg1} + (_i%16) * scale,
+                ${rectArg2} + Math.floor(_i/16) * scale,
+                ${rectArg3},
+                ${rectArg4}
+              )
             ));
           }
 
@@ -84,7 +112,6 @@ createRewriteFilter("Advanced skin loader", "https://tetr.io/js/tetrio.js*", {
             if (${texVar}.tetrioPlusIsGhost) {
               frames = gframes;
               delay = gdelay;
-              console.log(gframes, gdelay);
             }
 
             let target = () => ~~(((PIXI.Ticker.shared.lastTime/1000) * 60 / delay) % frames);

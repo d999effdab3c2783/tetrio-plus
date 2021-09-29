@@ -76,6 +76,52 @@ async function sanitizeAndLoadTPSE(data, storage) {
       await storage.set({ ghost: dataUri });
       return 'success';
     },
+    skinAnim: async dataUri => {
+      if (typeof dataUri != 'string' || !/^data:image\/.+?;base64,/.test(dataUri))
+        return `ERROR: Missing/invalid image`
+      await storage.set({ skinAnim: dataUri });
+      return 'success';
+    },
+    ghostAnim: async dataUri => {
+      if (typeof dataUri != 'string' || !/^data:image\/.+?;base64,/.test(dataUri))
+        return `ERROR: Missing/invalid image`
+      await storage.set({ ghostAnim: dataUri });
+      return 'success';
+    },
+    skinAnimMeta: async object => {
+      if (typeof object != 'object')
+        return `ERROR: Expected object`;
+
+      if (typeof object.frames != 'number' || object.frames < 1)
+        return `ERROR: Expected positive numerical value at frame`;
+      if (typeof object.delay != 'number' || object.delay < 1)
+        return `ERROR: Expected positive numerical value at delay`;
+
+      let whitelist = ['frames', 'delay'];
+      for (let key of Object.keys(object))
+        if (whitelist.indexOf(key) == -1)
+          return `ERROR: Unexpected value at ${key}`;
+
+      await storage.set({ skinAnimMeta: object });
+      return 'success';
+    },
+    ghostAnimMeta: async object => {
+      if (typeof object != 'object')
+        return `ERROR: Expected object`;
+
+      if (typeof object.frames != 'number' || object.frames < 1)
+        return `ERROR: Expected positive numerical value at frame`;
+      if (typeof object.delay != 'number' || object.delay < 1)
+        return `ERROR: Expected positive numerical value at delay`;
+
+      let whitelist = ['frames', 'delay'];
+      for (let key of Object.keys(object))
+        if (whitelist.indexOf(key) == -1)
+          return `ERROR: Unexpected value at ${key}`;
+
+      await storage.set({ ghostAnimMeta: object });
+      return 'success';
+    },
     customSoundAtlas: async (atlas, importData) => {
       if (typeof atlas != 'object') return `ERROR: Expected object`;
       for (let [key, value] of Object.entries(atlas)) {

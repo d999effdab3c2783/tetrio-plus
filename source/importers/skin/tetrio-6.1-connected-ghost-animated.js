@@ -1,6 +1,6 @@
 export const name = 'TETR.IO v6.1.0 connected ghost animated';
 export const desc = 'A complex 512x512 gif or multiple images with 48px by 48px blocks (see wiki)';
-export const extrainputs = [];
+export const extrainputs = ['delay'];
 
 import { KEYS, Validator } from './util.js';
 export function test(files) {
@@ -22,20 +22,18 @@ export async function load(files, storage, options) {
     files = await splitgif(files[0], options);
 
   let canvas = window.document.createElement('canvas');
-  canvas.width = 1024;
-  canvas.height = 1024 * files.length;
+  canvas.width = 512 * Math.min(16, files.length);
+  canvas.height = 512 * Math.ceil(files.length/16);
   let ctx = canvas.getContext('2d');
 
   for (let i = 0; i < files.length; i++)
-    ctx.drawImage(files[i].image, 0, i * 1024, 1024, 1024);
+    ctx.drawImage(files[i].image, i%16 * 512, Math.floor(i/16) * 512, 512, 512);
 
   await loadconnghostraster([files[0]], storage); // non-animated fallback
   await storage.set({
     ghostAnim: canvas.toDataURL('image/png'),
     ghostAnimMeta: {
       frames: files.length,
-      frameWidth: 2048,
-      frameHeight: 2048,
       delay: options.delay || 30
     }
   });
