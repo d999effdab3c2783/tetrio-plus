@@ -59,10 +59,10 @@ createRewriteFilter("Tetrio.js BG", "https://tetr.io/js/tetrio.js*", {
         let rewrite = varInit + b64Recode(backgrounds.map(bg => {
           return `../res/bg/1.jpg?bgId=${bg.id}`
         }));
-        console.log(
-          "Rewriting backgrounds definition",
-          { from: fullmatch, to: rewrite }
-        );
+        // console.log(
+        //   "Rewriting backgrounds definition",
+        //   { from: fullmatch, to: rewrite }
+        // );
         replaced = true;
         return rewrite;
       }

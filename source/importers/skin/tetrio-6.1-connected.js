@@ -10,7 +10,6 @@ export function test(files) {
     .blockMime('image/svg+xml')
     .filename(KEYS.CONNECTED)
     .dimension(1024, 1024)
-    .dimension(2048, 2048)
     .isAllowed();
 }
 export async function load(files, storage) {

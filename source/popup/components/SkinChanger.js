@@ -78,11 +78,11 @@ export default {
         { source:  'skin', x: bs* 0, y: bs*10 }, // i
         { source:  'skin', x: bs* 4, y: bs*10 }, // j
         { source:  'skin', x: bs* 8, y: bs*10 }, // t
-        { source: 'ghost', x: bs* 0, y: bs* 4 }, // ghost
+        { source: 'ghost', x: bs* 0, y: bs* 3 }, // ghost
         { source:  'skin', x: bs*12, y: bs*10 }, // hold
         { source:  'skin', x: bs*16, y: bs* 3 }, // garbage
         { source:  'skin', x: bs*16, y: bs* 7 }, // dark garbage
-        { source: 'ghost', x: bs* 4, y: bs* 4 }, // topout
+        { source: 'ghost', x: bs* 4, y: bs* 3 }, // topout
       ];
       for (let i = 0; i < 12; i++) {
         let { source, x, y } = blocks[i];
@@ -94,14 +94,15 @@ export default {
         );
       }
 
+      // BUG: loads blank sometimes?
       return canvas.toDataURL('image/png');
     }
   },
   methods: {
     loadSkin() {
       browser.storage.local.get(['skin', 'ghost']).then(({ skin, ghost }) => {
-        if (ghost != this.cached.ghost) this.cached.ghost = ghost;
-        if (skin != this.cached.skin) this.cached.skin = skin;
+        this.cached.ghost = ghost;
+        this.cached.skin = skin;
       });
     },
     resetSkin() {

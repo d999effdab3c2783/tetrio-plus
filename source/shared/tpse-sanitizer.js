@@ -443,7 +443,7 @@ async function sanitizeAndLoadTPSE(data, storage) {
   let { from, to } = await migrate({
     get(keys) { return data }, // It's technically complient
     set(pairs) { Object.assign(data, pairs) },
-    delete(keys) {
+    remove(keys) {
       if (!Array.isArray(keys)) keys = [keys];
       for (let key of keys)
         delete data[key];

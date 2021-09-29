@@ -116,16 +116,16 @@ createRewriteFilter("Tetrio.js Music", "https://tetr.io/js/tetrio.js*", {
           musicpoolVar +
           b64Recode(JSON.parse(newMusicPoolJson))
         );
-        console.log(
-          "Rewriting music definition",
-          { from: fullmatch, to: rewrite }
-        );
+        // console.log(
+        //   "Rewriting music definition",
+        //   { from: fullmatch, to: rewrite }
+        // );
         replaced = true;
         return rewrite;
       }
     );
 
-    console.log("Rewrite successful: " + replaced);
+    // console.log("Rewrite successful: " + replaced);
     if (!replaced) console.error(
       "Custom music rewrite failed. " +
       "Please update your plugin. "

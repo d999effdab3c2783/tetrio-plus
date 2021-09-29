@@ -11,7 +11,6 @@ musicGraph(({ dispatchEvent }) => {
       try {
       let type = locationHeuristic(evt.detail.type, evt.detail.spatialization);
       let { name, args } = evt.detail;
-      console.log('got evt', evt, name, args);
       switch (name) {
         case 'countdown_stride':
           var count = ["GO!", "set", "ready"].indexOf(args[0])

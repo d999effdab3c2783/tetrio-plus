@@ -176,7 +176,7 @@ var migrate = (() => {
       // TODO: Implement a real migration for this data
       // (importers are es6, migrate.js unfortunately isn't.)
 
-      await dataSource.delete(['skinSvg', 'skinPng', 'skinAnim', 'skinAnimMeta'])
+      await dataSource.remove(['skinSvg', 'skinPng', 'skinAnim', 'skinAnimMeta'])
 
     }
   })

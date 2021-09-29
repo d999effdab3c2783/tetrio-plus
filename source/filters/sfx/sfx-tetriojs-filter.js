@@ -22,16 +22,16 @@ createRewriteFilter("Tetrio.js Sfx", "https://tetr.io/js/tetrio.js*", {
       /(TETRIO_SE_SHEET\s*=\s*){[^}]+}/,
       (fullmatch, varInit) => {
         let rewrite = `${varInit}${b64Recode(customSoundAtlas)}`;
-        console.log(
-          "Rewriting sound atlas definition",
-          { from: fullmatch, to: rewrite }
-        );
+        // console.log(
+        //   "Rewriting sound atlas definition",
+        //   { from: fullmatch, to: rewrite }
+        // );
         replaced = true;
         return rewrite;
       }
     );
 
-    console.log("Rewrite successful: " + replaced);
+    // console.log("Rewrite successful: " + replaced);
     if (!replaced) console.error(
       "Custom sfx rewrite failed. " +
       "Please update your plugin. "

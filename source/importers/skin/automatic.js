@@ -7,12 +7,16 @@ import * as tetrio61 from './tetrio-6.1.js';
 import * as tetrio61ghost from './tetrio-6.1-ghost.js';
 import * as tetrio61connected from './tetrio-6.1-connected.js';
 import * as tetrio61connectedghost from './tetrio-6.1-connected-ghost.js';
+import * as tetrio61connectedanimated from './tetrio-6.1-connected-animated.js';
+import * as tetrio61connectedghostanimated from './tetrio-6.1-connected-ghost-animated.js';
 
 export const loaders = {
   tetrio61,
   tetrio61ghost,
   tetrio61connected,
   tetrio61connectedghost,
+  tetrio61connectedanimated,
+  tetrio61connectedghostanimated,
   tetriosvg,
   tetrioraster,
   tetrioanim,
@@ -20,9 +24,9 @@ export const loaders = {
   jstrisanim
 };
 const multiloaders = {
-  ...loaders,
   tetrio61multi: multi('tetrio61', 'tetrio61ghost'),
-  tetrio61connectedmulti: multi('tetrio61connected', 'tetrio61connectedghost')
+  tetrio61connectedmulti: multi('tetrio61connected', 'tetrio61connectedghost'),
+  ...loaders,
 };
 function multi(...keys) {
   let subloaders = keys.map(key => loaders[key]);

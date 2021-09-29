@@ -10,132 +10,105 @@ createRewriteFilter("UHD Forcer", "https://tetr.io/js/tetrio.js*", {
   }
 });
 
-createRewriteFilter("Animated skins", "https://tetr.io/js/tetrio.js*", {
+createRewriteFilter("Advanced skin loader", "https://tetr.io/js/tetrio.js*", {
   enabledFor: async (storage, request) => {
-    return false; // TODONOW: fix
-    let res = await storage.get(['advancedSkinLoading', 'skinAnimMeta']);
-    return res.advancedSkinLoading && res.skinAnimMeta;
+    let res = await storage.get([
+      'advancedSkinLoading',
+      'skinAnimMeta',
+      'ghostAnimMeta'
+    ]);
+    return res.advancedSkinLoading && (res.skinAnimMeta || res.ghostAnimMeta);
   },
   onStop: async (storage, url, src, callback) => {
-    let res = await storage.get('skinAnimMeta');
-    let { frames, frameWidth, frameHeight } = res.skinAnimMeta;
+    try {
+      const res = await storage.get(['skinAnimMeta', 'ghostAnimMeta']);
 
-    // You're gonna want line wrap for this one
-    const monster = /Object\.keys\(([\w$]+)\.minoCanvases\)\.forEach\(([\w$]+)\s*=>\s*{\s*([\w$]+)\[\2\]\s*=[^}]+}\),\s*Object\.keys\([\w$]+\.minoCanvasesShiny\)\.forEach\(([\w$]+)\s*=>\s*{\s*([\w$]+)\[\4\]\s*=[^}]+}\),/;
+      // Load animated 2x spritesheet
+      src = src.replace(
+        /(\/res\/skins\/(minos|ghost)\/connected.2x.png)/g,
+        "$1?animated"
+      );
 
-    let outerTextureList = null;
-    let outerShinyTextureList = null;
-    src = src.replace(monster, (
-      match,
-      canvasesContainer,
-      _forEachVar1,
-      textureList,
-      _forEachVar2,
-      shinyTextureList
-    ) => {
-      outerTextureList = textureList;
-      outerShinyTextureList = shinyTextureList;
-      // Intercepts the mino canvas setup and replaces it with our own texture
-      // generation, and also obtains the texture variable names it outputs to
-      return `
-        Object.keys(${ canvasesContainer }.minoCanvases).forEach((e, minoIndex) => {
-          let {
-            frames: frameCount, frameWidth, frameHeight
-          } = ${b64Recode(res.skinAnimMeta)};
-
-          let frames = [];
-          let baseUrl = 'https://tetr.io/res/minos.png?animated';
-          let base = PIXI.BaseTexture.from(baseUrl);
-          for (let i = 0; i < frameCount; i++) {
-            let rect = new PIXI.Rectangle(
-              minoIndex * frameWidth/12,
-              i * frameHeight,
-              frameWidth/12-1, // -1 for pixel gap
-              frameHeight
-            );
-            let tex = new PIXI.Texture(base, rect);
-            frames.push(tex);
-          }
-
-          let proxy = new Proxy(frames, {
-            get(target, prop) {
-              if (prop == 'ratio')
-                return 30 / frameHeight;
-              if (/^\\d+|length$/.test(prop))
-                return frames[prop];
-              return frames[0][prop];
-            },
-            set(obj, prop, val) {
-              for (let frame of frames)
-                frame[prop] = val;
-            }
-          });
-
-          ${ textureList }[e] = proxy;
-          ${ shinyTextureList }[e] = proxy;
-        });
-      `;
-    });
-    if (!outerTextureList) {
-      console.log('Animated skins hooks filter broke, stage 1/3');
-      callback({ type: 'text/javascript', data: src, encoding: 'text' });
-      return;
-    }
-
-    // Extracts a function that calculates the size of a mino relative to
-    // its base size and the current canvas size.
-    let scaleFunc = /function (\w+)\((\w+)\)\s*{\s*return\s*\2\s*\*\w+\s*}/;
-    let match = scaleFunc.exec(src);
-    if (!match) {
-      console.log('Animated skins hooks filter broke, stage 2/3');
-      callback({ type: 'text/javascript', data: src, encoding: 'text' });
-      return;
-    }
-    let [_match, scaleFuncName, _arg] = match;
-
-
-    // Replace anywhere using the previously captured texture variables with an
-    // AnimatedSprite instead of a regular one, and also set up animation logic.
-    let matches = 0;
-    // Why does javascript allow `$` in variable names reeeEEEEEEE
-    let sanitizedOTL = outerTextureList.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    let spritemaker = new RegExp(`(new PIXI\\.Sprite\\()([^)]*${sanitizedOTL}[^)]*\\).*?)(;)`, 'g');
-    src = src.replace(spritemaker, (match, _constructor, contents, postmatch) => {
-      matches++;
-      // Avoiding matching the trailing close paran is harder than really
-      // necessary in regex-land, so just slice it off here.
-      contents = contents.replace(/\)$/, '');
-      return `
-        (() => {
-          let { frames, delay } = ${b64Recode(res.skinAnimMeta)};
-          let sprite = new PIXI.AnimatedSprite(${contents});
-          sprite.animationSpeed = 1/delay;
-          let texture = [${contents}][0];
-          sprite.scale.set(
-            ${scaleFuncName}(31/30) * texture.ratio,
-            ${scaleFuncName}(1) * texture.ratio
+      // Set up animated textures
+      var rgx = /(\w+\((\w+),\s*(\w+),\s*(\w+),\s*(\w+),\s*(\w+),\s*(\w+)\)\s*{[\S\s]{0,200}Object\.keys\(\3\)\.forEach\(\w\s*=>\s*{)([\S\s]+?)}/
+      var match = false;
+      src = src.replace(rgx, ($, pre, a1, a2, a3, a4, a5, a6, loopBody) => {
+        var rgx2 = /(\w+\[\w+\])\s*=\s*new\s*PIXI\.Texture\((\w+),\s*new\s*PIXI.Rectangle\(([^,]+),([^,]+),([^,]+),([^,]+)\)\)/;
+        let res = rgx2.exec(loopBody);
+        if (!res) return;
+        let [$2, target, baseTexArg, rectArg1, rectArg2, rectArg3, rectArg4] = res;
+        loopBody = (`
+          let first = new PIXI.Texture(
+            ${baseTexArg},
+            new PIXI.Rectangle(${rectArg1}, ${rectArg2}, ${rectArg3}, ${rectArg4})
           );
 
-          let target = () => ~~(((PIXI.Ticker.shared.lastTime/1000) * 60 / delay) % frames);
-          sprite.gotoAndStop(target());
-          let int = setInterval(() => {
-            sprite.gotoAndStop(target());
-            if (!sprite.parent || !sprite.parent.parent)
-              clearInterval(int);
-          }, 16);
-          return sprite;
-        })()${postmatch}
-      `
-    });
-    if (matches !== 4) {
-      // Warning only
-      console.warn(`Animated skins stage 3/3 expected to match 4 times, but matched ${matches} times.`)
-    }
+          let ghost = (
+            ${baseTexArg}?.resource?.url &&
+            ${baseTexArg}.resource.url.indexOf('ghost') !== -1
+          );
+          let scale = ghost ? 1024 : 2048;
 
-    callback({
-      type: 'text/javascript',
-      data: src,
-      encoding: 'text'
-    });
+          first.tetrioPlusAnimatedArray = [];
+          for (let _i = 0; _i < Math.max(${baseTexArg}.height / scale, 1); _i++) {
+            first.tetrioPlusIsGhost = ghost;
+            first.tetrioPlusAnimatedArray.push(new PIXI.Texture(
+              ${baseTexArg},
+              new PIXI.Rectangle(${rectArg1}, ${rectArg2} + _i * scale, ${rectArg3}, ${rectArg4})
+            ));
+          }
+
+          ${target} = first;
+        `);
+        match = true;
+        return pre + loopBody + '}';
+      });
+      if (!match) {
+        console.warn('Advanced skin loader hooks broke (1/?)');
+        return;
+      }
+
+      // Replace sprites with animated sprites
+      var rgx = /(wang24[\S\s]{0,50}(.)\s*=\s*\w+\.assets\[.+?\].textures[\S\s]{0,50})new PIXI.Sprite\(\2\)/g;
+      var match = 0;
+      src = src.replace(rgx, ($, pre, texVar) => {
+        match += 1;
+        return pre + (`
+          (() => {
+            let { frames, delay } = ${b64Recode(res.skinAnimMeta || {})};
+            let { frames: gframes, delay: gdelay } = ${b64Recode(res.ghostAnimMeta || {})};
+
+            let sprite = new PIXI.AnimatedSprite(${texVar}.tetrioPlusAnimatedArray);
+            sprite.animationSpeed = 1/delay;
+
+            if (${texVar}.tetrioPlusIsGhost) {
+              frames = gframes;
+              delay = gdelay;
+              console.log(gframes, gdelay);
+            }
+
+            let target = () => ~~(((PIXI.Ticker.shared.lastTime/1000) * 60 / delay) % frames);
+            sprite.gotoAndStop(target());
+            let int = setInterval(() => {
+              sprite.gotoAndStop(target());
+              if (!sprite.parent || !sprite.parent.parent)
+                clearInterval(int);
+            }, 16);
+            return sprite;
+          })()
+        `);
+      });
+      if (match != 2) {
+        console.warn('Advanced skin loader hooks broke (2/?)');
+        return;
+      }
+
+    } finally {
+      callback({
+        type: 'text/javascript',
+        data: src,
+        encoding: 'text'
+      });
+    }
   }
 })
