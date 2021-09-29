@@ -269,7 +269,8 @@ app.whenReady().then(async () => {
       const originalUrl = 'https://tetr.io/' + req.url.substring(
         'tetrio-plus://tetrio-plus/'.length
       );
-      const url = originalUrl.split('?')[0]; // query params break some stuffs
+      // query params break some stuffs (why? what stuff?)
+      const url = originalUrl.split('?')[0];
 
       // greenlog("Filtered potential handlers", rewriteHandlers, '->', handlers);
 
@@ -326,7 +327,7 @@ app.whenReady().then(async () => {
       const dataSource = await getDataSourceForDomain(originalUrl);
 
       let handlers = rewriteHandlers.filter(handler => {
-        return matchesGlob(handler.url, url);
+        return matchesGlob(handler.url, url) || matchesGlob(handler.url, originalUrl);
       });
 
       greenlog("Num handlers:", handlers.length)
