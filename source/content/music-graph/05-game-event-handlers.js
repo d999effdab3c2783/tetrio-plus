@@ -7,6 +7,68 @@ musicGraph(({ dispatchEvent }) => {
       // Duel enemy spatialization is 0.4499...
       return 'enemy';
     }
+    document.addEventListener('tetrio-plus-fx', evt => {
+      try {
+      let type = locationHeuristic(evt.detail.type, evt.detail.spatialization);
+      let { name, args } = evt.detail;
+      console.log('got evt', evt, name, args);
+      switch (name) {
+        case 'countdown_stride':
+          var count = ["GO!", "set", "ready"].indexOf(args[0])
+          dispatchEvent(`fx-countdown-${count}`);
+          dispatchEvent(`text-countdown-${count}`); // backwards compat
+          break;
+        case 'countdown':
+          var count = args[0] == 'GO!' ? 0 : parseInt(args[0]);
+          dispatchEvent(`fx-countdown`, count);
+          dispatchEvent(`text-countdown-${count}`); // backwards compat
+          break;
+        case 'clear':
+          let level = [
+            'NONE', 'SINGLE', 'DOUBLE', 'TRIPLE', 'QUAD', 'PENTA', 'HEXA',
+            'HEPTA', 'OCTA', 'ENNEA', 'DECA', 'HENDECA', 'DODECA', 'TRIADECA',
+            'TESSARADECA', 'PENTEDECA', 'HEXADECA', 'HEPTADECA', 'OCTADECA',
+            'ENNEADECA', 'EICOSA', 'KAGARIS'
+          ].indexOf(args[0]);
+          dispatchEvent(`fx-line-clear-${type}`, level)
+          break;
+        case 'clutch':
+          dispatchEvent(`fx-clutch-${type}`);
+          break;
+        case 'zenlevel':
+          dispatchEvent(`fx-zen-levelup`);
+          break;
+        case 'levelup':
+          dispatchEvent(`fx-master-levelup`);
+          break;
+        case 'combo':
+          dispatchEvent(`fx-combo-${type}`, parseInt(args[0]))
+          break;
+        case 'tspin':
+          let piece = args[0].toLowerCase()[0];
+          dispatchEvent(`fx-${piece}-spin-${type}`);
+
+          // backwards compat
+          dispatchEvent(`text-${piece}-spin`);
+          dispatchEvent(`text-any-spin`);
+          break;
+        case 'timeleft':
+          if (args[0].endsWith('PLAYERS LEFT'))
+            dispatchEvent(`fx-${parseInt(args[0])}-players-left`);
+          if (args[0].endsWith('S LEFT'))
+            dispatchEvent(`fx-${parseInt(args[0])}-seconds-left`);
+          break;
+        case 'popup_offence': // (lines sent)
+          dispatchEvent(`fx-offense-${type}`, args[0]);
+          dispatchEvent(`text-spike`, args[0]); // backwards compat
+          break;
+        case 'popup_defense': // (lines blocked)
+          dispatchEvent(`fx-defense-${type}`, args[0]);
+          dispatchEvent(`text-spike`, args[0]); // backwards compat
+          break;
+      }
+      } catch(ex) { console.error(ex)}
+    });
     document.addEventListener('tetrio-plus-actiontext', evt => {
       // console.log('IJ actiontext', evt.detail.type, evt.detail.text);
       let type = locationHeuristic(evt.detail.type, evt.detail.spatialization);

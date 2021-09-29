@@ -17,101 +17,91 @@ createRewriteFilter("Music graph hooks", "https://tetr.io/js/tetrio.js*", {
       var match = rgx.exec(src);
       if (!match) {
         console.error('Music graph hooks broken (setup/?)');
-      } else {
-        const typeVar = match[1];
-        const spatialVar = match[2];
+        return;
+      }
 
-        /**
-         * These two regexii targets two functions that handles text creation and
-         * turns them into a global hook for other scripts to consume.
-         */
-        var match = false;
-        var rgx = /Shout:\s*function\((\w{1,2}),(\w{1,2}),(\w{1,2}),(\w{1,2})\)\s*{/i;
-        src = src.replace(rgx, ($, arg1, arg2) => {
-          match = true;
-          return (
-            $ +
-            `document.dispatchEvent(new CustomEvent('tetrio-plus-actiontext', {
-              detail: {
-                type: ${arg1},
-                text: ${arg2},
-                spatialization:${spatialVar}
-              }
-            }));`
-          )
-        });
-        if (!match) {
-          console.error('Music graph hooks broken (text 1/2)');
-        }
+      const typeVar = match[1];
+      const spatialVar = match[2];
 
-        var match = false;
-        var rgx = /Splash:\s*function\((\w{1,2}),(\w{1,2})\)\s*{/;
-        src = src.replace(rgx, ($, arg1, arg2) => {
-          match = true;
-          return (
-            $ +
-            `document.dispatchEvent(new CustomEvent('tetrio-plus-actiontext', {
-              detail: {
-                type: ${arg1},
-                text: ${arg2},
-                spatialization:${spatialVar}
-              }
-            }));`
-          )
-        });
-        if (!match) {
-          console.error('Music graph hooks broken (text 2/2)');
-        }
-
-        /**
-         * This regex targets a function that plays sound effects and turns it
-         * into a global hook for other scripts to consume.
-         */
-        var match = false;
-        var rgx = /playIngame:\s*function\((\w+),[^)]+\)\s*{/i;
-        src = src.replace(rgx, ($, arg1) => {
-          match = true;
-          return (
-            $ +
-            `document.dispatchEvent(new CustomEvent('tetrio-plus-actionsound', {
-              detail: {
-                name: ${arg1},
-                args: [...arguments]
-              }
-            }));`
-          )
-        });
-        if (!match) {
-          console.error('Music graph hooks broken (sfx)');
-        }
-
-        /**
-         * This regex targets a bit of the code that calculates the board +
-         * garbage height near the code that emits the 'warning' sound effect,
-         * and uses it to emit an event for the current board height plus
-         * incoming garbage height.
-         */
-        var match = false;
-        var rgx = /((\w{1,2})\s*=\s*)(Math\.max\(0,\s*\2\s*-\s*Math\.min.+)(\)\s*>\s*19)/i;
-        src = src.replace(rgx, ($, prematch, varName, expression, postmatch) => {
-          match = true;
-          return (
-            /* o = */`${prematch}(() => {
-              let height = ${expression};
-              document.dispatchEvent(new CustomEvent('tetrio-plus-actionheight', {
+      var match = false;
+      var rgx = /(fx\((\w+)\)\s*{\s*)(return\s*(this\.effects\.get\(\w+\)))/;
+      src = src.replace(rgx, ($, pre, argument, post, effect) => {
+        match = true;
+        return pre + (`
+          if (!${effect}.patched) {
+            let original = ${effect}.create.bind(${effect});
+            ${effect}.patched = true
+            ${effect}.create = (...args) => {
+              document.dispatchEvent(new CustomEvent('tetrio-plus-fx', {
                 detail: {
-                  height,
-                  type:${typeVar},
-                  spatialization:${spatialVar}
+                  name: ${argument},
+                  args: args,
+                  type: this.${typeVar.split('.').slice(-2).join('.')},
+                  spatialization: this.${spatialVar.split('.').slice(-3).join('.')}
                 }
               }));
-              return height;
-            })()${postmatch}` /* > 19 */
-          );
-        });
-        if (!match) {
-          console.error('Music graph hooks broken (height)');
-        }
+              original(...args);
+            }
+          }
+        `) + post;
+      })
+      if (!match) {
+        console.error('Music graph hooks broken (fx)');
+      }
+
+      /**
+       * This regex targets a function that plays sound effects and turns it
+       * into a global hook for other scripts to consume.
+       */
+      var match = false;
+      var rgx = /playIngame:\s*function\((\w+),[^)]+\)\s*{/i;
+      src = src.replace(rgx, ($, arg1) => {
+        match = true;
+        return (
+          $ +
+          `document.dispatchEvent(new CustomEvent('tetrio-plus-actionsound', {
+            detail: {
+              name: ${arg1},
+              args: [...arguments]
+            }
+          }));`
+        )
+      });
+      if (!match) {
+        console.error('Music graph hooks broken (sfx)');
+      }
+
+      /**
+       * This regex looks for a convenient "HighestLine" function to send off below.
+       */
+      let highestLinePath = /let\s*\w+\s*=\s*(\w+\.\w+\.HighestLine\(\))/.exec(src);
+      if (!highestLinePath) {
+        console.error('Music graph hooks broken (height 1/2)');
+        return;
+      }
+      const highestLineCall = highestLinePath[1];
+
+      /**
+       * This regex hooks a convenient location for us to send off data from
+       * variables gathered in other hooks
+       */
+      var match = false;
+      var rgx = /\w+\.\w+\.IsServer\(\)\s*\|\|\s*\(\s*\w+\.\w+\.\w+\.stackdirty/;
+      src = src.replace(rgx, $ => {
+        match = true;
+        return `
+        let height = ${highestLineCall}
+        document.dispatchEvent(new CustomEvent('tetrio-plus-actionheight', {
+          detail: {
+            height,
+            type:${typeVar},
+            spatialization:${spatialVar}
+          }
+        }))
+        ;` + $;
+      });
+      if (!match) {
+        console.error('Music graph hooks broken (height 2/2)');
       }
     } finally {
       callback({
