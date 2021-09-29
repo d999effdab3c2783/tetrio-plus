@@ -86,7 +86,6 @@ createRewriteFilter("Animated skins", "https://tetr.io/js/tetrio.js*", {
     // its base size and the current canvas size.
     let scaleFunc = /function (\w+)\((\w+)\)\s*{\s*return\s*\2\s*\*\w+\s*}/;
     let match = scaleFunc.exec(src);
-    console.log("scaleFunctionResult", match)
     if (!match) {
       console.log('Animated skins hooks filter broke, stage 2/3');
       callback({ type: 'text/javascript', data: src, encoding: 'text' });

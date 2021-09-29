@@ -12,8 +12,6 @@ createRewriteFilter("Emote tabbing hooks", "https://tetr.io/js/tetrio.js*", {
     let patched = false;
     let reg1 = /([a-zA-Z]*)={base:{awesome:.+?}}/;
     src = src.replace(reg1, (match, varName) => {
-      console.log(match)
-      console.log(varName)
       patched = true;
       return match + `;
         Object.defineProperty(window, "emoteMap", {
