@@ -2,9 +2,9 @@
   "private": true,
   "name": "tetrioplus",
   "author": "UniQMG",
-  "description": "Tetrio Plus",
+  "description": "TETR.IO PLUS",
   "main": "makeTPSELib.js",
-  "version": "0.16.19",
+  "version": "0.18.3",
   "dependencies": {
     "av": "^0.4.9",
     "canvas": "^2.6.1",
