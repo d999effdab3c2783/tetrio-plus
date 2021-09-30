@@ -85,6 +85,8 @@ createRewriteFilter("Advanced skin loader", "https://tetr.io/js/tetrio.js*", {
               )
             ));
           }
+          if (first.tetrioPlusAnimatedArray.length == 0)
+            first.tetrioPlusAnimatedArray.push(first);
 
           ${target} = first;
         `);
