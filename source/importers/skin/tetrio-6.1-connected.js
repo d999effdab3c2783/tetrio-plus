@@ -18,5 +18,9 @@ export async function load(files, storage) {
   canvas.width = 2048;
   canvas.height = 2048;
   ctx.drawImage(files[0].image, 0, 0, 2048, 2048);
-  await storage.set({ skin: canvas.toDataURL('image/png') });
+  await storage.set({
+    skin: canvas.toDataURL('image/png'),
+    skinAnim: null,
+    skinAnimMeta: null
+  });
 }

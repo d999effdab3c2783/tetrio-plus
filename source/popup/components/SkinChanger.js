@@ -106,7 +106,10 @@ export default {
       });
     },
     resetSkin() {
-      browser.storage.local.remove(['skin', 'ghost']).then(() => {
+      browser.storage.local.remove([
+        'skin', 'skinAnim', 'skinAnimMeta',
+        'ghost', 'ghostAnim', 'ghostAnimMeta'
+      ]).then(() => {
         this.cached.skin = null;
         this.cached.ghost = null;
       });
