@@ -2,7 +2,7 @@ if (typeof require == 'function') {
   var migrate = require('./migrate');
   var DOMParser = require('xmldom').DOMParser;
 }
-if (window.migrate) { // module issues
+if (typeof window !== 'undefined' && window.migrate) { // module issues
   var migrate = window.migrate;
 }
 
