@@ -49,8 +49,8 @@ createRewriteFilter("Advanced skin loader", "https://tetr.io/js/tetrio.js*", {
         if (!res2) return;
         let [$2, target, baseTexArg, rectArg1, rectArg2, rectArg3, rectArg4] = res2;
         loopBody = (`
-          let { frames, delay } = ${b64Recode(res.skinAnimMeta || {})};
-          let { frames: gframes, delay: gdelay } = ${b64Recode(res.ghostAnimMeta || {})};
+          let { frames, delay } = ${b64Recode(res.skinAnimMeta || { frames: 0, delay: 1 })};
+          let { frames: gframes, delay: gdelay } = ${b64Recode(res.ghostAnimMeta || { frames: 0, delay: 1 })};
 
           let first = new PIXI.Texture(
             ${baseTexArg},
@@ -66,8 +66,8 @@ createRewriteFilter("Advanced skin loader", "https://tetr.io/js/tetrio.js*", {
             delay = gdelay;
           }
           if (ghost === undefined) {
-            frames = 1;
-            delay = 0
+            frames = 0;
+            delay = 1;
             //console.log("TETR.IO PLUS: Unknown skin type, bailing animation.");
           }
           let scale = ghost ? 512 : 1024;
@@ -107,6 +107,9 @@ createRewriteFilter("Advanced skin loader", "https://tetr.io/js/tetrio.js*", {
           (() => {
             let { frames, delay } = ${b64Recode(res.skinAnimMeta || {})};
             let { frames: gframes, delay: gdelay } = ${b64Recode(res.ghostAnimMeta || {})};
+
+            if (!${texVar}.tetrioPlusAnimatedArray) // Bail on non-tetrioplus skin
+              return new PIXI.AnimatedSprite([${texVar}]);
 
             let sprite = new PIXI.AnimatedSprite(${texVar}.tetrioPlusAnimatedArray);
             sprite.animationSpeed = 1/delay;
