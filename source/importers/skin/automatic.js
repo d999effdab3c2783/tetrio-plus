@@ -38,6 +38,7 @@ function multi(...keys) {
     return null;
   }
   function test(files) {
+    if (files.length != 2) return false;
     return !!findOrder(files);
   }
   async function load(files, storage) {
@@ -57,5 +58,6 @@ export async function automatic(files, storage, options) {
   options?.log?.("Guessing skin format", format)
   let loader = multiloaders[format];
   if (!loader) throw new Error('Unable to determine format.');
-  return await loader.load(files, storage, options);
+  await loader.load(files, storage, options);
+  return { type: 'skin', format: format };
 }

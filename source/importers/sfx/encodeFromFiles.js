@@ -27,4 +27,5 @@ export async function load(files, storage, options) {
   }
 
   await encode(sprites, storage);
+  return { type: 'sfx' };
 }

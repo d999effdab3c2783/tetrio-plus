@@ -8,7 +8,8 @@ export default async function automatic(importers, files, storage, options) {
   if (files.every(file => file.name.endsWith('.zip'))) {
     if (options.zipdepth > 5)
       throw new Error("Refusing to open a zip nested more than 5 layers deep");
-    for (let file of files) {
+
+    let results = await files.map(async file => {
       let buffer = await (await fetch(file.data)).arrayBuffer()
       let zip = await JSZip.loadAsync(buffer);
       let mimes = {
@@ -34,9 +35,9 @@ export default async function automatic(importers, files, storage, options) {
       }));
       options?.log?.("Importing files from zip " + file.name + "...");
       options.zipdepth = (options.zipdepth || 0) + 1;
-      await automatic(importers, files, storage, options);
-    }
-    return;
+      return await automatic(importers, files, storage, options);
+    });
+    return { type: 'multi', results };
   }
   if (files.every(file => file.name.endsWith('.tpse'))) {
     options?.log?.("Guessing import type TPSE");
@@ -44,7 +45,7 @@ export default async function automatic(importers, files, storage, options) {
       let json = await (await fetch(file.data)).json()
       await sanitizeAndLoadTPSE(json, storage);
     }
-    return;
+    return { type: 'tpse' };
   }
   if (files.every(file => /^image/.test(file.type))) {
     options?.log?.("Guessing import type skin");
