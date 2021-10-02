@@ -11,7 +11,7 @@ export async function test(files) {
 }
 
 export async function load(files, storage, options) {
-  let sprites = await decodeDefaults(status => options?.log?.(status));
+  let sprites = await decodeDefaults(status => (options&&options.log||(()=>{}))(status));
 
   for (let file of files) {
     let noExt = file.name.split('.').slice(0, -1).join('.');

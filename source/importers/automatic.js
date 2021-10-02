@@ -33,14 +33,14 @@ export default async function automatic(importers, files, storage, options) {
           data: 'data:application/octet-stream;base64,' + await file.async('base64')
         })
       }));
-      options?.log?.("Importing files from zip " + file.name + "...");
+      (options&&options.log||(()=>{}))("Importing files from zip " + file.name + "...");
       options.zipdepth = (options.zipdepth || 0) + 1;
       return await automatic(importers, files, storage, options);
     });
     return { type: 'multi', results };
   }
   if (files.every(file => file.name.endsWith('.tpse'))) {
-    options?.log?.("Guessing import type TPSE");
+    (options&&options.log||(()=>{}))("Guessing import type TPSE");
     for (let file of files) {
       let json = await (await fetch(file.data)).json()
       await sanitizeAndLoadTPSE(json, storage);
@@ -48,15 +48,15 @@ export default async function automatic(importers, files, storage, options) {
     return { type: 'tpse' };
   }
   if (files.every(file => /^image/.test(file.type))) {
-    options?.log?.("Guessing import type skin");
+    (options&&options.log||(()=>{}))("Guessing import type skin");
     return await importers.skin.automatic(files, storage, options);
   }
   if (await sfxTest(files)) {
-    options?.log?.("Guessing import type sfx");
+    (options&&options.log||(()=>{}))("Guessing import type sfx");
     return await sfxLoad(files, storage, options);
   }
   if (await musicTest(files)) {
-    options?.log?.("Guessing import type music");
+    (options&&options.log||(()=>{}))("Guessing import type music");
     return await musicLoad(files, storage, options);
   }
   // TODO: backgrounds
