@@ -12,20 +12,20 @@ export async function test(files) {
 
 export async function load(files, storage, options) {
   let sprites = await decodeDefaults(status => (options&&options.log||(()=>{}))(status));
+  let modified = [];
 
   for (let file of files) {
     let noExt = file.name.split('.').slice(0, -1).join('.');
     let sprite = sprites.filter(sprite => sprite.name == noExt)[0];
     if (!sprite) continue;
-    if (!file.buffer) {
-      file.buffer = await (await window.fetch(file.data)).arrayBuffer();
-    }
-    sprite.buffer = await decodeAudio(file.buffer);
+    modified.push(noExt);
+    let buffer = file.buffer || await (await window.fetch(file.data)).arrayBuffer();
+    sprite.buffer = await decodeAudio(buffer);
     sprite.duration = sprite.buffer.duration;
     sprite.offset = -1;
     sprite.modified = true;
   }
 
   await encode(sprites, storage);
-  return { type: 'sfx' };
+  return { type: 'sfx', modified };
 }
