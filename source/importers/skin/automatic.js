@@ -2,6 +2,7 @@ import * as tetriosvg from './tetrio-svg.js';
 import * as tetrioraster from './tetrio-raster.js';
 import * as tetrioanim from './tetrio-animated.js';
 import * as jstrisraster from './jstris-raster.js';
+import * as jstrisconnected from './jstris-connected.js';
 import * as jstrisanim from './jstris-animated.js';
 import * as tetrio61 from './tetrio-6.1.js';
 import * as tetrio61ghost from './tetrio-6.1-ghost.js';
@@ -21,6 +22,7 @@ export const loaders = {
   tetrioraster,
   tetrioanim,
   jstrisraster,
+  jstrisconnected,
   jstrisanim
 };
 const multiloaders = {

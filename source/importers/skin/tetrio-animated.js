@@ -12,7 +12,7 @@ export function test(files) {
   });
 }
 
-import splitgif from './converters/splitgif.js';
+import splitgif from './converters/util/splitgif.js';
 import { load as loadraster } from './tetrio-raster.js';
 import { load as loadt61ca } from './tetrio-6.1-connected-animated.js';
 import { load as loadt61cga } from './tetrio-6.1-connected-ghost-animated.js';

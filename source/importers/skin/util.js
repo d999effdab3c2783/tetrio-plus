@@ -2,7 +2,8 @@ export const KEYS = {
   CONNECTED: '_connected_minos',
   CONNECTED_GHOST: '_connected_ghost',
   UNCONNECTED: '_unconnected_minos',
-  UNCONNECTED_GHOST: '_unconnected_ghost'
+  UNCONNECTED_GHOST: '_unconnected_ghost',
+  JSTRIS_CONNECTED: '_connected_jstris'
 }
 
 export class Validator {

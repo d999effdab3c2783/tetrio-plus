@@ -15,7 +15,7 @@ export function test(files) {
   });
 }
 
-import splitgif from './converters/splitgif.js';
+import splitgif from './converters/util/splitgif.js';
 import { load as loadconnghostraster } from './tetrio-6.1-connected-ghost.js';
 export async function load(files, storage, options) {
   if (files.length == 1 && files[0].type == 'image/gif')
@@ -29,9 +29,12 @@ export async function load(files, storage, options) {
   for (let i = 0; i < files.length; i++)
     ctx.drawImage(files[i].image, i%16 * 512, Math.floor(i/16) * 512, 512, 512);
 
+  let frame = canvas.toDataURL('image/png');
+  if (frame == "data:,") throw new Error("Final texture too large");
+
   await loadconnghostraster([files[0]], storage); // non-animated fallback
   await storage.set({
-    ghostAnim: canvas.toDataURL('image/png'),
+    ghostAnim: frame,
     ghostAnimMeta: {
       frames: files.length,
       delay: options.delay || 30
