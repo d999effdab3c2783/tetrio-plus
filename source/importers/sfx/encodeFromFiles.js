@@ -2,12 +2,26 @@ import { fetchAtlas, decodeDefaults, decodeAudio } from './decode.js';
 import encode from './encode.js';
 
 export async function test(files) {
-  if (!files.every(file => /^audio/.test(file.type))) return false;
-  let atlas = await fetchAtlas();
-  return files.every(file => {
-    let noExt = file.name.split('.').slice(0, -1).join('.');
-    return !!atlas[noExt];
+  let warnings = [];
+  let audio = files.filter(file => {
+    if (/^audio/.test(file.type)) return true;
+    warnings.push(`Skipped non-audio file ${file.name}`);
+    return false;
   });
+  if (audio.length < files.length * 0.9)
+    return { result: false };
+
+  let atlas = await fetchAtlas();
+  let valid = files.filter(file => {
+    let [_, noExt, _ext] = /([^/]+?)(\..{0,5})?$/.exec(file.name) || [];
+    if (atlas[noExt]) return true;
+    warnings.push(`Skipped unknown sound effect file ${file.name}`);
+    return false;
+  });
+  if (valid.length < audio.length * 0.5)
+    return { result: false };
+
+  return { result: true, warnings };
 }
 
 export async function load(files, storage, options) {

@@ -52,9 +52,12 @@ export default async function automatic(importers, files, storage, options) {
     (options&&options.log||(()=>{}))("Guessing import type skin");
     return await importers.skin.automatic(files, storage, options);
   }
-  if (await sfxTest(files)) {
+  let sfxResult = await sfxTest(files);
+  if (sfxResult.result) {
     (options&&options.log||(()=>{}))("Guessing import type sfx");
-    return await sfxLoad(files, storage, options);
+    for (let warning of sfxResult.warnings)
+      (options&&options.log||(()=>{}))(warning);
+    return { ...await sfxLoad(files, storage, options), warnings: sfxResult.warnings };
   }
   if (await musicTest(files)) {
     (options&&options.log||(()=>{}))("Guessing import type music");
