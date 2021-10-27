@@ -271,8 +271,9 @@ app.whenReady().then(async () => {
       );
       // query params break some stuffs (why? what stuff?)
       const url = originalUrl.split('?')[0];
-
-      // greenlog("Filtered potential handlers", rewriteHandlers, '->', handlers);
+      
+      const bypassed = null != new URL(originalUrl)
+        .searchParams.get('bypass-tetrio-plus');
 
       let contentType = null;
       let data = null;
@@ -327,6 +328,7 @@ app.whenReady().then(async () => {
       const dataSource = await getDataSourceForDomain(originalUrl);
 
       let handlers = rewriteHandlers.filter(handler => {
+        if (bypassed) return false;
         return matchesGlob(handler.url, url) || matchesGlob(handler.url, originalUrl);
       });
 

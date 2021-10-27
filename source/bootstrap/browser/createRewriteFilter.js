@@ -9,13 +9,18 @@
 function createRewriteFilter(name, url, options) {
   browser.webRequest.onBeforeRequest.addListener(
     async request => {
+      if (new URL(request.url).searchParams.get('bypass-tetrio-plus') != null) {
+        console.log(`[${name} filter] Ignoring bypassed ${url}`);
+        return;
+      }
+
       let origin = request.originUrl || request.url;
       console.log("Request origin URL", origin);
       const dataSource = await getDataSourceForDomain(origin);
 
       let { tetrioPlusEnabled } = await dataSource.get('tetrioPlusEnabled');
       if (!tetrioPlusEnabled) {
-        console.log(`[${name} filter] Tetrio plus disabled, ignoring ${url}`);
+        console.log(`[${name} filter] TETR.IO PLUS disabled, ignoring ${url}`);
         return;
       }
 
