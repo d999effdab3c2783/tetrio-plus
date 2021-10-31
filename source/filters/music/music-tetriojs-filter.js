@@ -12,6 +12,12 @@ createRewriteFilter("Tetrio.js Music", "https://tetr.io/js/tetrio.js*", {
     let { disableVanillaMusic } = await storage.get('disableVanillaMusic');
     let songs = (await storage.get('music')).music || [];
 
+    // tetrio naively populates the music tweaker using innerHTML
+    // so strip all special characters to make it safe
+    for (let song of songs)
+      for (let key of ['name', 'jpname', 'artist', 'jpartist'])
+        song.metadata[key] = song.metadata[key].replace(/[^A-Za-z ]/g, '')
+
     let newSongObject = {};
     for (let song of songs) {
       /*
