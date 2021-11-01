@@ -207,5 +207,5 @@ var migrate = (() => {
 
 if (typeof module !== 'undefined')
   module.exports = migrate;
-else if (typeof window !== 'undefined')
+if (typeof window !== 'undefined')
   window.migrate = migrate;

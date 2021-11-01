@@ -43,6 +43,10 @@ async function sanitizeAndLoadTPSE(data, storage) {
     return { success: true };
   }
 
+  function isNone(value) {
+    return (value === null || value === undefined);
+  }
+
   const importers = {
     sfxEnabled: parseBoolean('sfxEnabled'),
     musicEnabled: parseBoolean('musicEnabled'),
@@ -205,7 +209,7 @@ async function sanitizeAndLoadTPSE(data, storage) {
         if (typeof song.filename != 'string')
           return `ERROR: Expected string at [].filename`;
 
-        if (typeof song.override != 'string' && song.override !== null)
+        if (typeof song.override != 'string' && !isNone(song.override))
           return `ERROR: Expected string or null at [].override`;
 
         if (typeof song.metadata != 'object' || !song.metadata)
@@ -283,7 +287,7 @@ async function sanitizeAndLoadTPSE(data, storage) {
         if (typeof node.name != 'string')
           return `ERROR: Expected string at [].name`;
 
-        if (node.audio !== null) {
+        if (!isNone(node.audio)) {
           if (typeof node.audio != 'string')
             return `ERROR: Expected string or null at [].audio`;
 
@@ -293,7 +297,7 @@ async function sanitizeAndLoadTPSE(data, storage) {
           toSet['song-' + node.audio] = mp3;
         }
 
-        if (node.background !== null) {
+        if (!isNone(node.background)) {
           if (typeof node.background != 'string')
             return `ERROR: Expected string or null at [].background`;
 
@@ -318,14 +322,16 @@ async function sanitizeAndLoadTPSE(data, storage) {
         if (typeof node.audioEnd != 'number')
           return `ERROR: Expected number at [].audioEnd`;
 
-        if (typeof node.effects != 'object')
-          return `ERROR: Expected object at [].effects`;
+        if (!isNone(node.effects)) {
+          if (typeof node.effects != 'object')
+            return `ERROR: Expected object at [].effects`;
 
-        if (typeof node.effects.volume != 'number' || node.effects.volume < 0)
-          return `ERROR: Expected positive number at [].effects.volume`;
+          if (typeof node.effects.volume != 'number' || node.effects.volume < 0)
+            return `ERROR: Expected positive number at [].effects.volume`;
 
-        if (typeof node.effects.speed != 'number' || node.effects.speed < 0)
-          return `ERROR: Expected positive number at [].effects.speed`;
+          if (typeof node.effects.speed != 'number' || node.effects.speed < 0)
+            return `ERROR: Expected positive number at [].effects.speed`;
+        }
 
         if (!Array.isArray(node.triggers))
           return `ERROR: Expected array at [].triggers`;

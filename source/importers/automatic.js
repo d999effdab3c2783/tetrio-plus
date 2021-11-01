@@ -1,6 +1,7 @@
 import { test as sfxTest, load as sfxLoad } from './sfx/encodeFromFiles.js';
 import { test as musicTest, load as musicLoad } from './music.js';
 import { populateImage } from '../shared/filehelper.js';
+import /* non es6 */ '../shared/migrate.js';
 import /* non es6 */ '../shared/tpse-sanitizer.js';
 import /* non es6 */ '../lib/jszip.min.js';
 
