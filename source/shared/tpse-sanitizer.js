@@ -300,6 +300,8 @@ async function sanitizeAndLoadTPSE(data, storage) {
         if (!isNone(node.background)) {
           if (typeof node.background != 'string')
             return `ERROR: Expected string or null at [].background`;
+          if (typeof node.backgroundLayer != 'number')
+            return `ERROR: Expected number at [].backgroundLayer`;
 
           let bg = importData['background-' + node.background];
           if (typeof bg != 'string' || !/^data:.+?\/.+?;base64,/.test(bg))
@@ -337,7 +339,7 @@ async function sanitizeAndLoadTPSE(data, storage) {
           return `ERROR: Expected array at [].triggers`;
 
         for (let trigger of node.triggers) {
-          if (['fork', 'goto', 'kill', 'random', 'dispatch'].indexOf(trigger.mode) == -1)
+          if (['fork', 'goto', 'kill', 'random', 'dispatch', 'create'].indexOf(trigger.mode) == -1)
             return `ERROR: Expected enum value at [].triggers[].mode`;
 
           if (typeof trigger.target != 'number')
@@ -417,7 +419,7 @@ async function sanitizeAndLoadTPSE(data, storage) {
 
         let result5 = filterValues(node, '[]', [
           'id', 'type', 'name', 'audio', 'triggers', 'hidden', 'x', 'y',
-          'effects', 'audioStart', 'audioEnd', 'background'
+          'effects', 'audioStart', 'audioEnd', 'background', 'backgroundLayer'
         ]);
         if (!result5.success) return result5.error;
       }

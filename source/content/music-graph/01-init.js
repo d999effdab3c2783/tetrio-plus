@@ -69,6 +69,7 @@ function musicGraph(module) {
     nodes: [],
     audioContext,
     graph,
+    imageCache: {},
     audioBuffers,
     eventValueExtendedModes,
     eventValueEnabled,
@@ -82,8 +83,17 @@ function musicGraph(module) {
     if (!el.background) continue;
     let img = new Image();
     img.src = '/res/bg/1.jpg?bgId=' + el.background;
-    cache.push(img);
+    musicGraphData.imageCache[el.id] = img;
   }
+
+  // Force images to preload as background images?
+  // seems to prevent first-time lag in electron at least
+  let div = document.createElement('div');
+  div.style.display = 'none';
+  div.style.backgroundImage = Object.values(musicGraphData.imageCache)
+    .map(el => `url(${el.src})`)
+    .join(', ')
+  document.body.appendChild(div);
 
   for (let module of modules)
     module(musicGraphData);
@@ -91,11 +101,11 @@ function musicGraph(module) {
   for (let graphObject of Object.values(graph)) {
     if (graphObject.type != 'root') continue;
     let node = new musicGraphData.Node();
+    musicGraphData.nodes.push(node);
     node.setSource(graphObject);
-    musicGraphData.nodes.push(node)
   }
 
   console.log("[TETR.IO PLUS] Music graph ready")
 })().catch(ex => {
-  console.error("[TETR.IO PLUS] music graph error:", ex);
+  console.error("[TETR.IO PLUS] Music graph error:", ex);
 });

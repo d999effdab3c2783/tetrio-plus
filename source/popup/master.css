@@ -126,6 +126,10 @@ img.skin, .no-skin {
     -moz-appearance:textfield;
 }
 
+.custom-background {
+  max-width: 100%;
+  max-height: 25vh;
+}
 
 .longLink {
   white-space: nowrap;

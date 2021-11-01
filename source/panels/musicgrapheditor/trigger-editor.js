@@ -52,6 +52,7 @@ export default {
           <option value="fork">Create new node (fork)</option>
           <option value="goto">Go to node (goto)</option>
           <option value="kill">Stop executing (kill)</option>
+          <option value="create">Create this node (create)</option>
           <option value="dispatch">
             Dispatch a global custom event (dispatch)
           </option>

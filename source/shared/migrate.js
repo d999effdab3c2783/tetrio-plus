@@ -179,7 +179,28 @@ var migrate = (() => {
       await dataSource.remove(['skinSvg', 'skinPng', 'skinAnim', 'skinAnimMeta'])
 
     }
-  })
+  });
+
+  /*
+    v0.20.0 - More music graph stuff
+    added:
+    - musicGraph[].backgroundLayer
+  */
+  migrations.push({
+    version: '0.20.0',
+    run: async dataSource => {
+      await dataSource.set({ version: '0.20.0' });
+
+      let { musicGraph: json } = await dataSource.get('musicGraph');
+      if (json) {
+        let musicGraph = JSON.parse(json);
+        for (let node of musicGraph) {
+          node.backgroundLayer = 0;
+        }
+        await dataSource.set({ musicGraph: JSON.stringify(musicGraph) });
+      }
+    }
+  });
 
   return async function migrate(dataSource) {
     let { version: initialVersion} = await dataSource.get('version');

@@ -2,6 +2,7 @@ musicGraph(musicGraph => {
   const {
     nodes,
     audioContext: context,
+    imageCache,
     graph,
     eventValueEnabled,
     eventValueExtendedModes,
@@ -46,12 +47,15 @@ musicGraph(musicGraph => {
     static recalculateBackground() {
       if (!backgroundsEnabled) return;
 
-      let count = nodes.filter(node => node.source.background).length;
       let backgrounds = nodes
         .filter(node => node.source.background)
-        .map(node => `url(/res/bg/1.jpg?bgId=${node.source.background})`)
-        .reverse()
-        .join(',');
+        .sort((a, b) => {
+          a = a.source.backgroundLayer;
+          b = b.source.backgroundLayer;
+          return a == b ? 0 : (a > b ? -1 : 1);
+        })
+        .map(node => `url(${imageCache[node.source.id].src})`)
+        .join(', ');
 
       gameCanvas.style.backgroundImage = backgrounds || null;
     }

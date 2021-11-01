@@ -1,5 +1,5 @@
 musicGraph(graph => {
-  let { nodes, eventValueEnabled, eventValueExtendedModes } = graph;
+  let { Node, nodes, eventValueEnabled, eventValueExtendedModes } = graph;
   let recentEvents = [];
 
   let f8menu = document.getElementById('devbuildid');
@@ -44,35 +44,40 @@ musicGraph(graph => {
         recentEvents = recentEvents.slice(-20);
     }
 
-    for (let node of [...nodes]) {
-      iterTriggers: for (let trigger of node.source.triggers) {
-        if (trigger.event != eventName)
-          continue;
+    function testTrigger(trigger) {
+      if (trigger.event != eventName)
+        return false;
 
-        if (typeof value == 'number') {
-          if (eventValueExtendedModes.indexOf(trigger.event) >= 0) {
-            valueSwitcher: switch (trigger.valueOperator || '==') {
-              case '==':
-                if (!(value == trigger.value)) continue iterTriggers;
-                break valueSwitcher;
-              case '!=':
-                if (!(value != trigger.value)) continue iterTriggers;
-                break valueSwitcher;
-              case '>':
-                if (!(value > trigger.value)) continue iterTriggers;
-                break valueSwitcher;
-              case '<':
-                if (!(value < trigger.value)) continue iterTriggers;
-                break valueSwitcher;
-            }
-          } else {
-            if (trigger.value != value && trigger.value != 0)
-              continue;
+      if (typeof value == 'number') {
+        if (eventValueExtendedModes.indexOf(trigger.event) >= 0) {
+          switch (trigger.valueOperator || '==') {
+            case '==': if (!(value == trigger.value)) return false;
+            case '!=': if (!(value != trigger.value)) return false;
+            case '>': if (!(value > trigger.value)) return false;
+            case '<': if (!(value < trigger.value)) return false;
           }
+        } else {
+          if (trigger.value != value && trigger.value != 0)
+            return false;
         }
+      }
 
-        node.runTrigger(trigger, 0);
+      return true;
+    }
+
+    for (let nodeSrc of Object.values(graph.graph)) {
+      for (let trigger of nodeSrc.triggers) {
+        if (trigger.mode == 'create' && testTrigger(trigger)) {
+          let node = new Node();
+          nodes.push(node);
+          node.setSource(nodeSrc);
+        }
       }
     }
+
+    for (let node of [...nodes]) // slice since events could add or remove nodes
+      for (let trigger of node.source.triggers)
+        if (trigger.mode != 'create' && testTrigger(trigger))
+          node.runTrigger(trigger, 0);
   }
 });

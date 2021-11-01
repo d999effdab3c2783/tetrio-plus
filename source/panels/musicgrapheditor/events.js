@@ -105,5 +105,6 @@ export const eventHasTarget = {
   'goto': true,
   'kill': false,
   'random': false,
-  'dispatch': false
+  'dispatch': false,
+  'create': false
 }

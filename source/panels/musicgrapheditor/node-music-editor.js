@@ -21,6 +21,11 @@ export default {
         (Add backgrounds in the main TETR.IO PLUS menu)
       </div>
 
+      <div>
+        Background layer:
+        <input type="number" v-model.number="node.backgroundLayer" />
+      </div>
+
       Select audio:
       <select class="node-audio-selector" v-model="node.audio">
         <option :value="null">None</option>
