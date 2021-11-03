@@ -24,18 +24,20 @@ export default {
         </div>
       </div>
       <option-toggle storageKey="advancedSkinLoading">
-        Use advanced skin loading
-        <option-toggle inline storageKey="advancedSkinLoading" mode="hide">
-          <span
-            class="warning-icon"
-            :title="(
-              'This option is required for animated skins, but is more ' +
-              'likely to break. Tetrio is currently planning an overhaul to ' +
-              'the skins system which will almost definitely break this ' +
-              'in the future.'
-            )"
-          >⚠️</span>
-        </option-toggle>
+        <span :title="(
+          'This option is required for animated skins, but is more ' +
+          'likely to break.'
+        )">
+          Use advanced skin loading
+        </span>
+      </option-toggle>
+      <option-toggle storageKey="forceNearestScaling">
+        <span :title="(
+          'Turns off texture filtering for TETR.IO globally. Makes skins ' +
+          'sharper at the expense of overall visual quality.'
+        )">
+          Force nearest-neighbor scaling
+        </span>
       </option-toggle>
     </div>
   `,

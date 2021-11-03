@@ -69,6 +69,7 @@ async function sanitizeAndLoadTPSE(data, storage) {
     bypassBootstrapper: parseBoolean('bypassBootstrapper'),
     enableCustomMaps: parseBoolean('enableCustomMaps'),
     advancedSkinLoading: parseBoolean('advancedSkinLoading'),
+    forceNearestScaling: parseBoolean('forceNearestScaling'),
     windowTitleStatus: electronOnly(parseBoolean('windowTitleStatus')),
     musicGraphBackground: parseBoolean('musicGraphBackground'),
     skin: async dataUri => {
