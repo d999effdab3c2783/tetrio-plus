@@ -1,9 +1,7 @@
 import TriggerEditor from './trigger-editor.js';
 import NodeMusicEditor from './node-music-editor.js';
-import * as clipboard from './clipboard.js';
-import {
-  eventHasTarget
-} from './events.js';
+import * as clipboard from '../clipboard.js';
+import { eventHasTarget } from '../events.js';
 const html = arg => arg.join(''); // NOOP, for editor integration.
 
 export default {
@@ -114,6 +112,7 @@ export default {
     },
     copyNode(node) {
       this.copiedNode = node;
+      navigator.clipboard.writeText(JSON.stringify([ node ]));
     },
     moveNode(nodeBefore) {
       this.pasteNode(nodeBefore);

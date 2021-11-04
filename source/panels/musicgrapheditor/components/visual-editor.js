@@ -3,15 +3,17 @@ import {
   eventValueStrings,
   eventValueExtendedModes,
   eventHasTarget
-} from './events.js';
+} from '../events.js';
+import {clipboard} from '../clipboard.js';
 const html = arg => arg.join(''); // NOOP, for editor integration.
 
 export default {
   template: html`
-    <div ref="editor" class="visual-editor" :style="editorStyle">
+    <div ref="editor" class="visual-editor" :style="editorStyle" tabindex="0">
       <template v-for="node of nodes">
         <div
           class="node"
+          :class="{ selected: isSelected(node) }"
           :node-id="node.id"
           :style="{
             '--x': (node.x + camera.x) + 'px',
@@ -108,17 +110,25 @@ export default {
             </template>
           </template>
         </g>
+
+        <rect
+          v-if="selectRect"
+          :x="Math.min(selectRect.x1, selectRect.x2) - this.editorRect().left"
+          :y="Math.min(selectRect.y1, selectRect.y2) - this.editorRect().top"
+          :width="Math.abs(selectRect.x2 - selectRect.x1)"
+          :height="Math.abs(selectRect.y2 - selectRect.y1)"
+          fill="none"
+          stroke="red"
+          stroke-width="2"
+        />
       </svg>
     </div>
   `,
-  props: {
-    nodes: { type: Array, default: [] }
-  },
-  data: () => {
-    return {
-      camera: { x: 0, y: 0 }
-    }
-  },
+  props: ['nodes'],
+  data: () => ({
+    camera: { x: 0, y: 0 },
+    selectRect: null
+  }),
   computed: {
     editorStyle() {
       return {
@@ -131,6 +141,12 @@ export default {
     }
   },
   methods: {
+    editorRect() {
+      return this.$refs.editor.getBoundingClientRect();
+    },
+    isSelected(node) {
+      return clipboard.selected.indexOf(node) != -1
+    },
     round(val, step) {
       return Math.round(val / step) * step;
     },
@@ -298,9 +314,49 @@ export default {
     getNodeElemFromNode(node) {
       if (!node) return null;
       return document.querySelector(`.node[node-id="${node.id}"]`);
+    },
+    async copy(event) {
+      let active = document.activeElement;
+      if (active == this.$refs.editor || active == document.body) {
+        let data = JSON.stringify(clipboard.selected);
+        event.clipboardData.setData('text/plain', data);
+        event.preventDefault();
+      }
+    },
+    async paste(event) {
+      let musicGraph = null;
+      let result = await sanitizeAndLoadTPSE({
+        version: '0.20.0',
+        musicGraph: event.clipboardData.getData('text')
+      }, {
+        async set(pairs) {
+          if (pairs.musicGraph)
+            musicGraph = JSON.parse(pairs.musicGraph);
+        }
+      });
+      if (!musicGraph) return;
+
+      let ax = musicGraph.reduce((acc, node) => acc + node.x, 0) / musicGraph.length;
+      let ay = musicGraph.reduce((acc, node) => acc + node.y, 0) / musicGraph.length;
+      let { width, height } = this.$refs.editor.getBoundingClientRect();
+
+      clipboard.selected.splice(0);
+      for (let node of musicGraph) {
+        if (node.type == 'root') continue;
+        node.id = ++this.$parent.maxId;
+        node.x = Math.floor((node.x - ax - this.camera.x + width /2) / 20) * 20;
+        node.y = Math.floor((node.y - ay - this.camera.y + height/2) / 20) * 20;
+        this.nodes.push(node);
+        clipboard.selected.push(node);
+      }
     }
   },
   mounted() {
+    this.copy = this.copy.bind(this);
+    this.paste = this.paste.bind(this);
+    window.addEventListener('copy', this.copy);
+    window.addEventListener('paste', this.paste);
+
     interact('.visual-editor svg text')
       .on('tap', event => {
         let trigger = this.getTriggerFromElem(event.target);
@@ -310,8 +366,44 @@ export default {
     interact('.visual-editor')
       .draggable({})
       .on('dragmove', event => {
-        this.camera.x += event.dx;
-        this.camera.y += event.dy;
+        if (event.shiftKey) {
+          if (!this.selectRect) {
+            this.selectRect = {
+              x1: event.clientX0,
+              y1: event.clientY0,
+              x2: event.clientX0,
+              y2: event.clientY0
+            };
+          }
+          this.selectRect.x2 += event.delta.x;
+          this.selectRect.y2 += event.delta.y;
+        } else {
+          this.camera.x += event.dx;
+          this.camera.y += event.dy;
+        }
+      })
+      .on('dragend', event => {
+        if (event.shiftKey) {
+          let trect = {
+            top: Math.min(this.selectRect.y1, this.selectRect.y2),
+            bottom: Math.max(this.selectRect.y1, this.selectRect.y2),
+            left: Math.min(this.selectRect.x1, this.selectRect.x2),
+            right: Math.max(this.selectRect.x1, this.selectRect.x2),
+          };
+
+          if (!event.ctrlKey)
+            clipboard.selected.splice(0);
+
+          for (let node of this.nodes) {
+            let rect = document.querySelector(`[node-id="${node.id}"]`).getBoundingClientRect();
+            if (rect.top > trect.bottom) continue;
+            if (rect.left > trect.right) continue;
+            if (rect.bottom < trect.top) continue;
+            if (rect.right < trect.left) continue;
+            clipboard.selected.push(node);
+          }
+          this.selectRect = null;
+        }
       })
 
     interact('.visual-editor .node')
@@ -328,8 +420,13 @@ export default {
       })
       .on('dragmove', event => {
         let node = this.getNodeFromElem(event.target);
-        node.x += event.dx;
-        node.y += event.dy;
+        let set = clipboard.selected.indexOf(node) !== -1
+          ? clipboard.selected
+          : [node];
+        for (let node of set) {
+          node.x += event.dx;
+          node.y += event.dy;
+        }
       })
       .on('dragend', event => {
         let node = this.getNodeFromElem(event.target);
@@ -338,6 +435,15 @@ export default {
       })
       .on('tap', event => {
         let node = this.getNodeFromElem(event.target);
+        if (!event.ctrlKey && !event.shiftKey)
+          clipboard.selected.splice(0);
+
+        let index = clipboard.selected.indexOf(node);
+        if (index == -1)
+          clipboard.selected.push(node)
+        else if (event.ctrlKey)
+          clipboard.selected.splice(index, 1);
+
         this.$emit('focus', node);
       });
 

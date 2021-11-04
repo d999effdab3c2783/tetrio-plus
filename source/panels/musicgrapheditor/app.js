@@ -1,8 +1,9 @@
-import VisualEditor from './visual-editor.js';
-import NodeEditor from './node-editor.js';
+import VisualEditor from './components/visual-editor.js';
+import NodeEditor from './components/node-editor.js';
 import * as clipboard from './clipboard.js';
 const html = arg => arg.join(''); // NOOP, for editor integration.
-
+import /* non ES6 */ '../../shared/migrate.js';
+import /* non ES6 */ '../../shared/tpse-sanitizer.js';
 
 const app = new Vue({
   template: html`
@@ -30,18 +31,7 @@ const app = new Vue({
     </div>
   `,
   data: {
-    nodes: [{
-      id: 0,
-      type: 'root',
-      name: 'root',
-      audio: null,
-      audioStart: 0,
-      audioEnd: 0,
-      triggers: [],
-      hidden: false,
-      x: 0,
-      y: 0
-    }],
+    nodes: [],
     maxId: 0,
     saveOpacity: 0,
     clipboard: clipboard.clipboard
@@ -52,7 +42,7 @@ const app = new Vue({
   },
   methods: {
     addNode() {
-      this.nodes.push({
+      let node = {
         id: ++this.maxId,
         type: 'normal',
         name: 'new node ' + this.maxId,
@@ -69,7 +59,9 @@ const app = new Vue({
         },
         x: 0,
         y: 0
-      })
+      };
+      this.nodes.push(node);
+      return node;
     },
     save() {
       browser.storage.local.set({
@@ -125,11 +117,39 @@ const app = new Vue({
     }
   },
   mounted() {
+    Object.assign(this.addNode(), {
+      id: 0,
+      type: 'root',
+      name: 'root'
+    });
+    this.maxId = 0;
+
     browser.storage.local.get('musicGraph').then(({ musicGraph }) => {
       console.log("Loaded", musicGraph);
       if (!musicGraph) return;
       this.nodes = JSON.parse(musicGraph);
       this.maxId = Math.max(...this.nodes.map(node => node.id));
+    });
+    window.addEventListener('keydown', event => {
+      switch (event.key) {
+        case 'z':
+          if (!event.ctrlKey) break;
+          break;
+
+        case 'Escape':
+          this.selected.splice(0);
+          break;
+
+        case 'Delete':
+          for (let node of this.selected) {
+            if (node.type == 'root') continue;
+            let index = this.nodes.indexOf(node);
+            if (index == -1) continue;
+            this.nodes.splice(index, 1);
+          }
+          this.selected.splice(0);
+          break;
+      }
     });
   }
 });

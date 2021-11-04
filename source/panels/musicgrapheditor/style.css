@@ -159,6 +159,9 @@ input:invalid {
   flex-direction: column;
   justify-content: center;
 }
+.visual-editor .node.selected {
+  background-color: orange;
+}
 .visual-editor .node-anchor {
   --x: 0;
   --y: 0;

@@ -1,9 +1,11 @@
 export const clipboard = {
   copiedTrigger: null,
-  copiedNode: null
+  copiedNode: null,
+  selected: []
 };
 
 export const computed = {
+  selected() { return clipboard.selected },
   copiedTrigger: {
     get() { return clipboard.copiedTrigger; },
     set(val) { clipboard.copiedTrigger = val; }

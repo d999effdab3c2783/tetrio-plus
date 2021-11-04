@@ -3,8 +3,8 @@ import {
   eventValueStrings,
   eventValueExtendedModes,
   eventHasTarget
-} from './events.js';
-import * as clipboard from './clipboard.js';
+} from '../events.js';
+import * as clipboard from '../clipboard.js';
 const html = arg => arg.join(''); // NOOP, for editor integration.
 
 export default {
