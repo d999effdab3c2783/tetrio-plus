@@ -157,7 +157,7 @@ const app = new Vue({
           return el.mino;
         });
       }).join('');
-      this.mapString += `?${this.bag}?${this.hold}`;
+      this.mapString += `?${this.bag}?${this.hold || ""}`;
     },
     loadMapString(mapString) {
       let x = 0, y = 0;
