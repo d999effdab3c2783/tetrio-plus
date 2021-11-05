@@ -76,8 +76,9 @@ export default {
           </option>
         </select>
         <button
-          @click="trigger.predicateExpression = '1'"
+          @click="trigger.predicateExpression = '$ >= 0'"
           :disabled="showExpressionEditor"
+          style="padding: 1px 2px;"
         >Add predicate</button>
       </div>
 

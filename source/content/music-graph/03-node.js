@@ -181,7 +181,7 @@ musicGraph(musicGraph => {
           this.runTrigger(trigger, value, audioDelay);
     }
 
-    runTrigger(trigger, value, audioDelay=0) {
+    testTrigger(trigger, value) {
       if (typeof value == 'number') this.variables.$ = value;
 
       if (trigger.predicateExpression.trim().length > 0) {
@@ -192,6 +192,13 @@ musicGraph(musicGraph => {
           console.warn(`[TETR.IO PLUS] Music graph: error evaluating predicate ${trigger.predicateExpression}`, ex);
         }
       }
+      
+      return true;
+    }
+
+    runTrigger(trigger, value, audioDelay=0) {
+      if (!this.testTrigger(trigger, value))
+        return false;
 
       let startTime = trigger.preserveLocation
         ? this.currentTime * trigger.locationMultiplier

@@ -52,8 +52,10 @@ musicGraph(graph => {
             break;
           }
           let node = new Node();
-          nodes.push(node);
-          node.setSource(nodeSrc);
+          if (node.testTrigger(trigger, value)) {
+            nodes.push(node);
+            node.setSource(nodeSrc);
+          }
         }
       }
     }
