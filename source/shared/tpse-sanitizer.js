@@ -349,14 +349,23 @@ async function sanitizeAndLoadTPSE(data, storage) {
           if (typeof trigger.event != 'string')
             return `ERROR: Expected string value at [].triggers[].event`;
 
+          if (typeof trigger.predicateExpression != 'string')
+            return `ERROR: Expected string value at [].triggers[].predicateExpression`;
+
           if (typeof trigger.dispatchEvent != 'string')
             return `ERROR: Expected string value at [].triggers[].dispatchEvent`;
 
-          if (typeof trigger.variable != 'string')
-            return `ERROR: Expected string value at [].triggers[].variable`;
+          if (typeof trigger.dispatchExpression != 'string')
+            return `ERROR: Expected string value at [].triggers[].dispatchExpression`;
 
-          if (typeof trigger.expression != 'string')
-            return `ERROR: Expected string value at [].triggers[].expression`;
+          if (typeof trigger.setVariable != 'string')
+            return `ERROR: Expected string value at [].triggers[].setVariable`;
+
+          if (typeof trigger.setExpression != 'string')
+            return `ERROR: Expected string value at [].triggers[].setExpression`;
+
+          if (typeof trigger.timePassedDuration != 'number' || trigger.timePassedDuration < 0)
+            return `ERROR: Expected positive number value at [].triggers[].timePassedDuration`;
 
           if (typeof trigger.preserveLocation != 'boolean')
             return `ERROR: Expected boolean value at [].triggers[].preserveLocation`;
@@ -369,12 +378,6 @@ async function sanitizeAndLoadTPSE(data, storage) {
 
           if (typeof trigger.crossfadeDuration != 'number' || trigger.crossfadeDuration < 0)
             return `ERROR: Expected positive number value at [].triggers[].crossfadeDuration`;
-
-          if (typeof trigger.value != 'number' || trigger.value < 0)
-            return `ERROR: Expected positive number value at [].triggers[].value`;
-
-          if (['any', '==', '!=', '>', '<'].indexOf(trigger.valueOperator) == -1)
-            return `ERROR: Expected enum value at [].triggers[].valueOperator, got ${trigger.valueOperator}`;
 
           if (typeof trigger.anchor != 'object')
             return `ERROR: Expected object at [].triggers[].anchor`;
@@ -398,9 +401,10 @@ async function sanitizeAndLoadTPSE(data, storage) {
             return `ERROR: Expected number at [].triggers[].anchor.target.y`;
 
           let result1 = filterValues(trigger, '[].triggers[]', [
-            'mode', 'target', 'event', 'preserveLocation', 'value',
-            'valueOperator', 'anchor', 'crossfade', 'crossfadeDuration',
-            'locationMultiplier', 'dispatchEvent', 'variable', 'expression'
+            'mode', 'target', 'event', 'preserveLocation', 'anchor',
+            'crossfade', 'crossfadeDuration', 'locationMultiplier',
+            'dispatchEvent', 'timePassedDuration', 'predicateExpression',
+            'dispatchExpression', 'setExpression', 'setVariable'
           ]);
           if (!result1.success) return result1.error;
 

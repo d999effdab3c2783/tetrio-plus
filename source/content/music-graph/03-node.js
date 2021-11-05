@@ -12,13 +12,6 @@ musicGraph(musicGraph => {
     ExpVal
   } = musicGraph;
 
-  const expValCache = {};
-  function getCachedExpVal(expression) {
-    if (!expValCache[expression])
-      expValCache[expression] = new ExpVal(expression);
-    return expValCache[expression];
-  }
-
   /**
    * To achieve good audio playback, audio events are scheduled
    * SYNC_DElAY milliseconds into the future. Rather than waiting
@@ -85,8 +78,8 @@ musicGraph(musicGraph => {
         switch (trigger.event) {
           case 'time-passed':
             this.timeouts.push(setTimeout(
-              () => this.runTrigger(trigger, SYNC_DELAY/1000),
-              trigger.value*1000 - SYNC_DELAY
+              () => this.runTrigger(trigger, null, SYNC_DELAY/1000),
+              trigger.timePassedDuration*1000 - SYNC_DELAY
             ));
             break;
         }
@@ -102,7 +95,7 @@ musicGraph(musicGraph => {
     restartAudio(startTime, crossfade=false, audioDelay=0) {
       if (this.destroyed) return;
       if (!this.source.audio) {
-        this.runTriggersByName('node-end');
+        this.runTriggersByName('node-end', null);
         return;
       }
 
@@ -156,7 +149,7 @@ musicGraph(musicGraph => {
       this.timeouts.push(setTimeout(
         () => {
           if (this.audio != audioSource) return;
-          this.runTriggersByName('node-end', SYNC_DELAY / 1000);
+          this.runTriggersByName('node-end', null, SYNC_DELAY / 1000);
         },
         duration * 1000 - SYNC_DELAY
       ));
@@ -177,22 +170,29 @@ musicGraph(musicGraph => {
       if (index !== -1)
         nodes.splice(index, 1);
       for (let child of this.children)
-        child.runTriggersByName('parent-node-destroyed');
+        child.runTriggersByName('parent-node-destroyed', null);
       this.children.length = 0;
       Node.recalculateBackground();
     }
 
-    runTriggersByName(name, audioDelay=0) {
+    runTriggersByName(name, value, audioDelay=0) {
       for (let trigger of this.source.triggers)
         if (trigger.event == name)
-          this.runTrigger(trigger, audioDelay);
+          this.runTrigger(trigger, value, audioDelay);
     }
 
-    runTrigger(trigger, audioDelay=0) {
-      // console.log(
-      //   `Node ${this.source.name} running trigger ` +
-      //   `${trigger.event} ${trigger.mode} ${trigger.target}`
-      // );
+    runTrigger(trigger, value, audioDelay=0) {
+      if (typeof value == 'number') this.variables.$ = value;
+
+      if (trigger.predicateExpression.trim().length > 0) {
+        try {
+          let value = ExpVal.get(trigger.predicateExpression).evaluate(this.variables);
+          if (!value) return false;
+        } catch(ex) {
+          console.warn(`[TETR.IO PLUS] Music graph: error evaluating predicate ${trigger.predicateExpression}`, ex);
+        }
+      }
+
       let startTime = trigger.preserveLocation
         ? this.currentTime * trigger.locationMultiplier
         : 0;
@@ -203,10 +203,14 @@ musicGraph(musicGraph => {
             console.error("[TETR.IO PLUS] Unknown node #" + trigger.target);
             break;
           }
+          if (nodes.length >= 100) {
+            console.error("[TETR.IO PLUS] Music graph: Too many nodes, aborting fork.");
+            break;
+          }
           var node = new Node();
           Object.assign(node.variables, this.variables);
-          node.setSource(src, startTime, audioDelay);
           nodes.push(node);
+          node.setSource(src, startTime, audioDelay);
           Node.recalculateBackground();
           this.children.push(node);
           break;
@@ -232,16 +236,17 @@ musicGraph(musicGraph => {
           if (triggers.length == 0) break;
           this.runTrigger(
             triggers[Math.floor(Math.random() * triggers.length)],
+            null,
             SHORT_SYNC_DELAY/1000
           );
           break;
 
         case 'dispatch':
           try {
-            let value = trigger.expression.trim().length > 0
-              ? getCachedExpVal(trigger.expression).evaluate(this.variables)
+            let val = trigger.dispatchExpression.trim().length > 0
+              ? ExpVal.get(trigger.dispatchExpression).evaluate({ ...this.variables, $: value })
               : null;
-            musicGraph.dispatchEvent(trigger.dispatchEvent, value);
+            musicGraph.dispatchEvent(trigger.dispatchEvent, val);
           } catch(ex) {
             console.warn('[TETR.IO PLUS] Music graph: error running trigger', trigger, ex);
           }
@@ -249,9 +254,13 @@ musicGraph(musicGraph => {
 
         case 'set':
           try {
-            this.variables[trigger.variable] = getCachedExpVal(trigger.expression).evaluate(this.variables);
+            console.log(trigger.setExpression);
+            let val = ExpVal.get(trigger.setExpression).evaluate(this.variables);
+            console.log("set", trigger)
+            this.variables[trigger.setVariable] = val;
           } catch(ex) {
             console.warn('[TETR.IO PLUS] Music graph: error running trigger', trigger, ex);
+            debugger;
           }
           break;
       }
@@ -262,22 +271,28 @@ musicGraph(musicGraph => {
       for (let [key, val] of Object.entries(this.variables))
         debug.push(` ${key}=${val}`);
       for (let trigger of this.source.triggers) {
-        debug.push('\n​ ​ ​ ​ ');
-        debug.push(trigger.event + ' ');
+        debug.push('\n​ ​ ​ ​');
+        debug.push(' ' + trigger.event);
 
-        if (eventValueExtendedModes[trigger.event])
-          debug.push(trigger.valueOperator + ' ');
+        if (trigger.event == 'time-passed')
+          debug.push(' ' + trigger.timePassedDuration + 's');
 
-        if (eventValueEnabled[trigger.event])
-          debug.push(trigger.value + ' ');
-
-        debug.push(trigger.mode + ' ');
+        debug.push(' ' + trigger.mode);
 
         if (trigger.mode == 'fork' || trigger.mode == 'goto')
-          debug.push((graph[trigger.target] || {}).name);
+          debug.push(' ' + (graph[trigger.target] || {}).name);
 
-        if (trigger.mode == 'dispatch')
-          debug.push(trigger.dispatchEvent);
+        if (trigger.mode == 'set')
+          debug.push(` ${trigger.setVariable} = ${trigger.setExpression}`);
+
+        if (trigger.mode == 'dispatch') {
+          debug.push(' ' + trigger.dispatchEvent);
+          if (trigger.dispatchExpression.trim().length > 0)
+            debug.push(` (${trigger.dispatchExpression})`);
+        }
+
+        if (trigger.predicateExpression.trim().length > 0)
+          debug.push(' if ' + trigger.predicateExpression);
       }
       return debug.join('');
     }

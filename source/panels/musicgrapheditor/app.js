@@ -12,7 +12,7 @@ const app = new Vue({
         <div class="pane-header">
           <button @click="save">Save changes</button>
           <span :style="{ opacity: this.saveOpacity }">Saved!</span>
-          <span style="float: right; margin-right: 4px">
+          <span style="float: right;">
             <button @click="undo" :disabled="history.undo.length <= 1">
               Undo (x{{ history.undo.length-1 }})
             </button>

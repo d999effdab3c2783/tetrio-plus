@@ -70,8 +70,8 @@ export const events = [
   events.push('sfx-' + sfx + '-enemy');
 });
 
-export const eventValueStrings = {
-  'time-passed': 'Seconds',
+// Events that use the 'predicateExpression' field and their labels
+export const eventValueExtendedModes = {
   'board-height-player': 'Rows high',
   'board-height-enemy': 'Rows high',
   'fx-countdown': 'Count',
@@ -83,21 +83,6 @@ export const eventValueStrings = {
   'fx-defense-enemy': 'Lines blocked',
   'fx-combo-player': 'Combo',
   'fx-combo-enemy': 'Combo'
-};
-
-// Events that use the 'value' and 'valueOperator' fields
-export const eventValueExtendedModes = {
-  'fx-countdown': true,
-  'fx-offense-player': true,
-  'fx-offense-enemy': true,
-  'fx-defense-player': true,
-  'fx-defense-enemy': true,
-  'fx-combo-player': true,
-  'fx-combo-enemy': true,
-  'fx-line-clear-player': true,
-  'fx-line-clear-enemy': true,
-  'board-height-player': true,
-  'board-height-enemy': true
 }
 
 export const eventHasTarget = {

@@ -1,6 +1,5 @@
 import {
   events,
-  eventValueStrings,
   eventValueExtendedModes,
   eventHasTarget
 } from '../events.js';
@@ -172,15 +171,15 @@ export default {
         if (events.indexOf(trigger.event) == -1)
           label = '🌐' + label;
         if (eventValueExtendedModes[trigger.event])
-          label += ` ${trigger.valueOperator} ${trigger.value}`;
+          label += ` ${trigger.predicateExpression}`;
         label += ' ' + trigger.mode;
         if (trigger.mode == 'dispatch') {
           label += ' ' + trigger.dispatchEvent;
-          if (trigger.expression.trim().length > 0)
-            label += ` (${trigger.expression})`;
+          if (trigger.dispatchExpression.trim().length > 0)
+            label += ` (${trigger.dispatchExpression})`;
         }
         if (trigger.mode == 'set')
-          label += ` ${trigger.variable} = ${trigger.expression}`;
+          label += ` ${trigger.setVariable} = ${trigger.setExpression}`;
 
         let targetType = 'target';
         if (trigger.target == node.id)
@@ -334,13 +333,16 @@ export default {
     },
     async copy(event) {
       let active = document.activeElement;
-      if (active == this.$refs.editor || active == document.body) {
-        let data = JSON.stringify(clipboard.selected);
-        event.clipboardData.setData('text/plain', data);
-        event.preventDefault();
-      }
+      if (active != this.$refs.editor && active != document.body) return;
+
+      let data = JSON.stringify(clipboard.selected);
+      event.clipboardData.setData('text/plain', data);
+      event.preventDefault();
     },
     async paste(event) {
+      let active = document.activeElement;
+      if (active != this.$refs.editor && active != document.body) return;
+
       let musicGraph = null;
       let result = await sanitizeAndLoadTPSE({
         version: '0.20.0',

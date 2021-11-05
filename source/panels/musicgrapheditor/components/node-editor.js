@@ -91,20 +91,24 @@ export default {
     },
     addTrigger(node) {
       node.triggers.push({
-        mode: 'goto', // fork | goto | kill | random
-        target: node.id, // target node
+        mode: 'goto', // fork | goto | kill | random | dispatch | set
         event: 'node-end',
+
+        predicateExpression: '', // Used with events that have values
+        timePassedDuration: 0, // Used with 'time-passed' event
+
+        target: node.id, // Used with 'goto' and 'fork' modes
+        dispatchEvent: '', // Used with 'dispatch' mode
+        dispatchExpression: '',
+        setVariable: '', // Used with 'set' mode
+        setExpression: '',
+
+        crossfade: false, // Used when goto/fork a node with music
         preserveLocation: false,
-        locationMultiplier: 1,
-        crossfade: false,
         crossfadeDuration: 1,
-        dispatchEvent: '',
-        variable: '', // variable for 'set' mode
-        expression: '', // expression for 'set' mode
-        // seconds for time-passed, value for text-combo, text-b2b, text-spike
-        value: 0,
-        valueOperator: 'any', // any == != > <,
-        anchor: {
+        locationMultiplier: 1,
+
+        anchor: { // Location of connections for visual editor
           origin: { x: 100, y: 60 },
           target: { x: 100, y:  0 }
         }

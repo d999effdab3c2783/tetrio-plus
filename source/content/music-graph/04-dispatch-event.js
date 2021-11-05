@@ -1,5 +1,5 @@
 musicGraph(graph => {
-  let { Node, nodes, eventValueEnabled, eventValueExtendedModes } = graph;
+  let { Node, nodes, eventValueEnabled, eventValueExtendedModes, ExpVal } = graph;
   let recentEvents = [];
 
   let f8menu = document.getElementById('devbuildid');
@@ -44,26 +44,13 @@ musicGraph(graph => {
         recentEvents = recentEvents.slice(-20);
     }
 
-    function testTrigger(trigger) {
-      if (trigger.event != eventName)
-        return false;
-
-      if (typeof value == 'number') {
-        switch (trigger.valueOperator || '==') {
-          case 'any': break;
-          case '==': if (!(value == trigger.value)) return false; break;
-          case '!=': if (!(value != trigger.value)) return false; break;
-          case '>': if (!(value > trigger.value)) return false; break;
-          case '<': if (!(value < trigger.value)) return false; break;
-        }
-      }
-
-      return true;
-    }
-
     for (let nodeSrc of Object.values(graph.graph)) {
       for (let trigger of nodeSrc.triggers) {
-        if (trigger.mode == 'create' && testTrigger(trigger)) {
+        if (trigger.mode == 'create' && trigger.event == eventName) {
+          if (nodes.length >= 100) {
+            console.error("[TETR.IO PLUS] Music graph: Too many nodes, aborting create.");
+            break;
+          }
           let node = new Node();
           nodes.push(node);
           node.setSource(nodeSrc);
@@ -73,7 +60,7 @@ musicGraph(graph => {
 
     for (let node of [...nodes]) // slice since events could add or remove nodes
       for (let trigger of node.source.triggers)
-        if (trigger.mode != 'create' && testTrigger(trigger))
-          node.runTrigger(trigger, 0);
+        if (trigger.mode != 'create' && trigger.event == eventName)
+          node.runTrigger(trigger, value, 0);
   }
 });

@@ -228,6 +228,65 @@ var migrate = (() => {
     }
   });
 
+  /*
+    v0.20.1 - Music graph variables betterer
+
+    + musicGraph[].triggers[].predicateExpression
+    = musicGraph[].triggers[].value -> timePassedDuration or predicate
+    = musicGraph[].triggers[].valueOperator -> predicate
+    = musicGraph[].triggers[].expression -> setExpression, dispatchExpression
+    = musicGraph[].triggers[].variable -> setVariable
+  */
+  migrations.push({
+    version: '0.21.1',
+    run: async dataSource => {
+      await dataSource.set({ version: '0.21.1' });
+
+      const eventValueExtendedModes = {
+        'fx-countdown': true,
+        'fx-offense-player': true,
+        'fx-offense-enemy': true,
+        'fx-defense-player': true,
+        'fx-defense-enemy': true,
+        'fx-combo-player': true,
+        'fx-combo-enemy': true,
+        'fx-line-clear-player': true,
+        'fx-line-clear-enemy': true,
+        'board-height-player': true,
+        'board-height-enemy': true
+      };
+
+      let { musicGraph: json } = await dataSource.get('musicGraph');
+      if (json) {
+        let musicGraph = JSON.parse(json);
+        for (let node of musicGraph) {
+          for (let trigger of node.triggers) {
+            trigger.timePassedDuration = trigger.event == 'time-passed'
+              ? trigger.value
+              : 0;
+            trigger.predicateExpression = (
+              eventValueExtendedModes[trigger.event] &&
+              trigger.valueOperator != 'any'
+            ) ? (`$ ${trigger.valueOperator} ${trigger.value}`) : "";
+            trigger.dispatchExpression = trigger.mode == 'dispatch'
+              ? trigger.expression
+              : "";
+            trigger.setExpression = trigger.mode == 'set'
+              ? trigger.expression
+              : "";
+            trigger.setVariable = trigger.variable;
+
+            delete trigger.valueOperator;
+            delete trigger.value;
+            delete trigger.expression;
+            delete trigger.variable;
+          }
+        }
+        await dataSource.set({ musicGraph: JSON.stringify(musicGraph) });
+      }
+    }
+  });
+
   return async function migrate(dataSource) {
     let { version: initialVersion} = await dataSource.get('version');
     if (!initialVersion) initialVersion = '0.0.0';

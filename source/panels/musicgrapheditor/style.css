@@ -19,6 +19,7 @@ body {
   grid-area: left;
   border: 2px solid black;
   background: white;
+  position: relative;
 }
 
 .split-pane .visual-editor {
@@ -185,6 +186,31 @@ input:invalid {
 
 .error {
   color: red;
+}
+
+.help {
+  cursor: help;
+  border: 1px solid black;
+  border-radius: 999px;
+  font-weight: bold;
+  padding: 1px;
+}
+.helptext { display: none; }
+.help:hover .helptext {
+  font-weight: normal;
+  display: inline;
+  position: absolute;
+  width: 320px;
+  transform: translateX(-50%) translateY(calc(-100%));
+  background-color: #f6ffa1;
+  border: 2px solid black;
+  border-radius: 2px;
+  padding: 4px;
+}
+.helptext code {
+  background-color: black;
+  color: white;
+  padding: 2px;
 }
 
 /* Sorting */

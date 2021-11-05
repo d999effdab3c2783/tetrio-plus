@@ -1,9 +1,9 @@
 import {
   events,
-  eventValueStrings,
   eventValueExtendedModes,
   eventHasTarget
 } from '../events.js';
+import ExpressionEditor from './expression-editor.js';
 import * as clipboard from '../clipboard.js';
 import /* non-ES6 */ '../../../shared/expval.js';
 const html = arg => arg.join(''); // NOOP, for editor integration.
@@ -32,28 +32,32 @@ export default {
           🔽
         </button>
       </div>
+
       <div v-if="custom">
         <b>Name</b>
         <input type="text" @change="$emit('change')" v-model="trigger.event" />
       </div>
-      <div v-if="eventValueStrings[trigger.event] || custom">
-        <b>{{ eventValueStrings[trigger.event] || "Value" }}</b>
-        <select v-model="trigger.valueOperator"
-                v-if="eventValueExtendedModes[trigger.event] || custom"
-                @change="$emit('change')">
-          <option value="any" default>Any</option>
-          <option value="==">Equal to</option>
-          <option value="!=">Not equal to</option>
-          <option value=">">Greater than</option>
-          <option value="<">Less than</option>
-        </select>
+
+      <div v-if="trigger.event == 'time-passed'">
+        <b>Seconds</b>
         <input
           type="number"
-          v-if="trigger.valueOperator != 'any'"
+          v-if="trigger.event == 'time-passed'"
           @change="$emit('change')"
-          v-model.number="trigger.value"
+          v-model.number="trigger.timePassedDuration"
         />
       </div>
+
+      <div v-if="showExpressionEditor">
+        <expression-editor
+          v-model="trigger.predicateExpression"
+          @change="$emit('change')"
+          :optional="true"
+          @focus="predicateFocused = true"
+          @blur="predicateFocused = false"
+        >{{ eventValueExtendedModes[trigger.event] || "Predicate" }}</expression-editor>
+      </div>
+
       <div>
         <b>Mode</b>
         <select v-model="trigger.mode" @change="$emit('change')">
@@ -71,34 +75,42 @@ export default {
             Set a variable (set)
           </option>
         </select>
+        <button
+          @click="trigger.predicateExpression = '1'"
+          :disabled="showExpressionEditor"
+        >Add predicate</button>
       </div>
-      <div v-if="trigger.mode == 'dispatch'">
-        <b>Target</b>
-        <input
-          type="text"
-          @change="$emit('change')"
-          v-model="trigger.dispatchEvent"
-        />
-      </div>
-      <div v-if="trigger.mode == 'set'">
-        <b>Variable</b>
-        <input
-          type="text"
-          @change="$emit('change')"
-          v-model="trigger.variable"
-        />
-      </div>
-      <div v-if="trigger.mode == 'dispatch' || trigger.mode == 'set'" :class="{ error: expressionError }">
-        <b>Value</b>
-        <input
-          type="text"
-          @change="$emit('change')"
-          v-model="trigger.expression"
-        />
-        <div v-if="expressionError">
-          {{ expressionError }}
+
+      <template v-if="trigger.mode == 'dispatch'">
+        <div>
+          <b>Name</b>
+          <input
+            type="text"
+            @change="$emit('change')"
+            v-model="trigger.dispatchEvent"
+          />
         </div>
-      </div>
+        <expression-editor
+          v-model="trigger.dispatchExpression"
+          @change="$emit('change')"
+          :optional="true"
+        >Value</expression-editor>
+      </template>
+
+      <template v-if="trigger.mode == 'set'">
+        <div>
+          <b>Variable</b>
+          <input
+            type="text"
+            @change="$emit('change')"
+            v-model="trigger.setVariable"
+          />
+        </div>
+        <expression-editor
+          v-model="trigger.setExpression"
+        >Expression</expression-editor>
+      </template>
+
       <div v-if="hasTarget(trigger)">
         <b>Target</b>
         <select v-model="trigger.target" @change="$emit('change')">
@@ -108,6 +120,7 @@ export default {
         </select>
         <a href="#" @click="focus(trigger.target)">jump</a>
       </div>
+
       <template v-if="allowsPreserveLocation(trigger)">
         <div class="form-control">
           <input
@@ -130,6 +143,7 @@ export default {
           </span>
         </div>
       </template>
+
       <template v-if="allowsCrossfade(trigger)">
         <div class="form-control">
           <input
@@ -152,11 +166,12 @@ export default {
     </div>
   `,
   props: ['nodes', 'node', 'trigger'],
+  components: { ExpressionEditor },
   data: () => {
     return {
       events,
-      eventValueStrings,
       eventValueExtendedModes,
+      predicateFocused: false,
       clipboard: clipboard.clipboard
     }
   },
@@ -164,19 +179,15 @@ export default {
     eventSet() {
       return new Set(this.events);
     },
+    showExpressionEditor() {
+      return (
+        this.eventValueExtendedModes[this.trigger.event] ||
+        this.trigger.predicateExpression ||
+        this.predicateFocused
+      );
+    },
     custom() {
       return !this.eventSet.has(this.trigger.event);
-    },
-    expressionError() {
-      if (this.trigger.expression.length == 0 && this.trigger.mode == 'dispatch')
-        return null; // expression is optional for dispatch, value defaults to 0
-      try {
-        let expval = new ExpVal(this.trigger.expression);
-        let val = expval.evaluate({}, {});
-        return null;
-      } catch(ex) {
-        return ex.toString().replace(/^Error:\s*/, '');
-      }
     },
     ...clipboard.computed
   },

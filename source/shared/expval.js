@@ -1,6 +1,7 @@
 // cool post: https://chidiwilliams.com/post/evaluator/
 // this implementation is probably pretty jank
 
+const expValCache = {};
 class ExpVal {
   constructor(expr) {
     this.expr = expr;
@@ -11,7 +12,7 @@ class ExpVal {
       leftparan: /^\(/,
       rightparan: /^\)/,
       function: /^[A-Za-z]+\(/,
-      variable: /^[A-Za-z]\w*/,
+      variable: /^\$|^[A-Za-z]\w*/,
       comma: /^,/
     };
     const precedence = {
@@ -94,7 +95,20 @@ class ExpVal {
     this.rpn = out;
   }
 
+  static get(expression) {
+    if (!expValCache[expression])
+      expValCache[expression] = new ExpVal(expression);
+    return expValCache[expression];
+  }
+
   evaluate(variables={}, functions={}) {
+    Object.assign(functions, {
+      if(a, b, c) {
+        return (a ? b : c) || 0;
+      },
+      max: Math.max,
+      min: Math.min
+    })
     let stack = [];
     let args = [];
     let lastToken = null;
@@ -144,9 +158,9 @@ class ExpVal {
   }
 }
 
-let exp = "counter + 1";
-let expval = new ExpVal(exp);
-console.log(exp, '=', expval.evaluate({ counter: 1 }));
+// let exp = "counter + 1";
+// let expval = new ExpVal(exp);
+// console.log(exp, '=', expval.evaluate({ counter: 1 }));
 
 if (typeof musicGraph != 'undefined') musicGraph(graph => graph.ExpVal = ExpVal);
 if (typeof module != 'undefined' && module.exports) module.exports.ExpVal = ExpVal;
