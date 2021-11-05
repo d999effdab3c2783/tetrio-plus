@@ -202,6 +202,32 @@ var migrate = (() => {
     }
   });
 
+
+  /*
+    v0.20.0 - Even more music graph stuff
+    added:
+    - musicGraph[].triggers[].expression
+    - musicGraph[].triggers[].variable
+  */
+  migrations.push({
+    version: '0.21.0',
+    run: async dataSource => {
+      await dataSource.set({ version: '0.21.0' });
+
+      let { musicGraph: json } = await dataSource.get('musicGraph');
+      if (json) {
+        let musicGraph = JSON.parse(json);
+        for (let node of musicGraph) {
+          for (let trigger of node.triggers) {
+            trigger.expression = '';
+            trigger.variable = '';
+          }
+        }
+        await dataSource.set({ musicGraph: JSON.stringify(musicGraph) });
+      }
+    }
+  });
+
   return async function migrate(dataSource) {
     let { version: initialVersion} = await dataSource.get('version');
     if (!initialVersion) initialVersion = '0.0.0';

@@ -87,6 +87,11 @@ export default {
               font-size="8px"
             >🌐</text>
           </marker>
+          <marker id="=" viewBox="0 0 5 3" refX="2.6" refY="1.6"
+              markerWidth="24" markerHeight="24">
+            <path d="M 0 0 L 5 0 L 5 3 L 0 3 L 0 0" fill="black" />
+            <path d="M 1 1 L 4 1 M 1 2 L 4 2" stroke="lime" stroke-width="0.5px" />
+          </marker>
         </defs>
 
         <g :transform="svgTransform">
@@ -169,8 +174,13 @@ export default {
         if (eventValueExtendedModes[trigger.event])
           label += ` ${trigger.valueOperator} ${trigger.value}`;
         label += ' ' + trigger.mode;
-        if (trigger.mode == 'dispatch')
+        if (trigger.mode == 'dispatch') {
           label += ' ' + trigger.dispatchEvent;
+          if (trigger.expression.trim().length > 0)
+            label += ` (${trigger.expression})`;
+        }
+        if (trigger.mode == 'set')
+          label += ` ${trigger.variable} = ${trigger.expression}`;
 
         let targetType = 'target';
         if (trigger.target == node.id)
@@ -218,6 +228,7 @@ export default {
               y2 = y1 - 50;
               relX = (x2 - node.x)/200;
               relY = ((y1 - node.y) + (y2 - target.y))/2 * 1/60;
+              textY = y2 - 20;
               break;
 
             case 'bottom':
@@ -225,6 +236,7 @@ export default {
               y2 = y1 + 50;
               relX = (x2 - node.x)/200;
               relY = ((y1 - node.y) + (y2 - target.y))/2 * 1/60;
+              textY = y2 + 20;
               break;
 
             case 'left':
@@ -232,7 +244,7 @@ export default {
               x2 = x1 - 50;
               relX = ((x1 - node.x) + (x2 - target.x))/2 * 1/200;
               relY = (y2 - node.y)/60;
-              textX = x2 - 10;
+              textX = x2 - 15;
               translateY = 0;
               break;
 
@@ -241,7 +253,7 @@ export default {
               x2 = x1 + 50;
               relX = ((x1 - node.x) + (x2 - target.x))/2 * 1/200;
               relY = (y2 - node.y)/60;
-              textX = x2 + 10;
+              textX = x2 + 15;
               translateY = 0;
               break;
           }
@@ -279,6 +291,11 @@ export default {
         if (trigger.mode == 'dispatch') {
           startCap = null;
           endCap = 'global';
+        }
+
+        if (trigger.mode == 'set') {
+          startCap = null;
+          endCap = '=';
         }
 
         return {
@@ -334,6 +351,7 @@ export default {
             musicGraph = JSON.parse(pairs.musicGraph);
         }
       });
+      console.log("pasted", result, musicGraph);
       if (!musicGraph) return;
 
       let ax = musicGraph.reduce((acc, node) => acc + node.x, 0) / musicGraph.length;

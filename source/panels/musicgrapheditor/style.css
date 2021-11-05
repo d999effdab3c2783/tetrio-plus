@@ -183,6 +183,10 @@ input:invalid {
   border-radius: 9999px;
 }
 
+.error {
+  color: red;
+}
+
 /* Sorting */
 .node-editor {
   z-index: 100;

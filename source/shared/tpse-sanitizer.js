@@ -340,7 +340,7 @@ async function sanitizeAndLoadTPSE(data, storage) {
           return `ERROR: Expected array at [].triggers`;
 
         for (let trigger of node.triggers) {
-          if (['fork', 'goto', 'kill', 'random', 'dispatch', 'create'].indexOf(trigger.mode) == -1)
+          if (['fork', 'goto', 'kill', 'random', 'dispatch', 'create', 'set'].indexOf(trigger.mode) == -1)
             return `ERROR: Expected enum value at [].triggers[].mode`;
 
           if (typeof trigger.target != 'number')
@@ -351,6 +351,12 @@ async function sanitizeAndLoadTPSE(data, storage) {
 
           if (typeof trigger.dispatchEvent != 'string')
             return `ERROR: Expected string value at [].triggers[].dispatchEvent`;
+
+          if (typeof trigger.variable != 'string')
+            return `ERROR: Expected string value at [].triggers[].variable`;
+
+          if (typeof trigger.expression != 'string')
+            return `ERROR: Expected string value at [].triggers[].expression`;
 
           if (typeof trigger.preserveLocation != 'boolean')
             return `ERROR: Expected boolean value at [].triggers[].preserveLocation`;
@@ -367,7 +373,7 @@ async function sanitizeAndLoadTPSE(data, storage) {
           if (typeof trigger.value != 'number' || trigger.value < 0)
             return `ERROR: Expected positive number value at [].triggers[].value`;
 
-          if (['==', '!=', '>', '<'].indexOf(trigger.valueOperator) == -1)
+          if (['any', '==', '!=', '>', '<'].indexOf(trigger.valueOperator) == -1)
             return `ERROR: Expected enum value at [].triggers[].valueOperator, got ${trigger.valueOperator}`;
 
           if (typeof trigger.anchor != 'object')
@@ -394,7 +400,7 @@ async function sanitizeAndLoadTPSE(data, storage) {
           let result1 = filterValues(trigger, '[].triggers[]', [
             'mode', 'target', 'event', 'preserveLocation', 'value',
             'valueOperator', 'anchor', 'crossfade', 'crossfadeDuration',
-            'locationMultiplier', 'dispatchEvent'
+            'locationMultiplier', 'dispatchEvent', 'variable', 'expression'
           ]);
           if (!result1.success) return result1.error;
 

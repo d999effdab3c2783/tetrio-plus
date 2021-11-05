@@ -47,18 +47,14 @@ musicGraph(graph => {
     function testTrigger(trigger) {
       if (trigger.event != eventName)
         return false;
-        
+
       if (typeof value == 'number') {
-        if (eventValueExtendedModes[trigger.event]) {
-          switch (trigger.valueOperator || '==') {
-            case '==': if (!(value == trigger.value)) return false; break;
-            case '!=': if (!(value != trigger.value)) return false; break;
-            case '>': if (!(value > trigger.value)) return false; break;
-            case '<': if (!(value < trigger.value)) return false; break;
-          }
-        } else {
-          if (trigger.value != value && trigger.value != 0)
-            return false;
+        switch (trigger.valueOperator || '==') {
+          case 'any': break;
+          case '==': if (!(value == trigger.value)) return false; break;
+          case '!=': if (!(value != trigger.value)) return false; break;
+          case '>': if (!(value > trigger.value)) return false; break;
+          case '<': if (!(value < trigger.value)) return false; break;
         }
       }
 

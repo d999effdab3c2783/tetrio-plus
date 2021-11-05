@@ -106,5 +106,6 @@ export const eventHasTarget = {
   'kill': false,
   'random': false,
   'dispatch': false,
-  'create': false
+  'create': false,
+  'set': false
 }

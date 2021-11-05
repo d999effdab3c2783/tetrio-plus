@@ -8,8 +8,16 @@ musicGraph(musicGraph => {
     eventValueExtendedModes,
     audioBuffers,
     getGlobalVolume,
-    backgroundsEnabled
+    backgroundsEnabled,
+    ExpVal
   } = musicGraph;
+
+  const expValCache = {};
+  function getCachedExpVal(expression) {
+    if (!expValCache[expression])
+      expValCache[expression] = new ExpVal(expression);
+    return expValCache[expression];
+  }
 
   /**
    * To achieve good audio playback, audio events are scheduled
@@ -42,6 +50,7 @@ musicGraph(musicGraph => {
       this.timeouts = [];
       this.startedAt = null;
       this.children = [];
+      this.variables = {};
     }
 
     static recalculateBackground() {
@@ -195,6 +204,7 @@ musicGraph(musicGraph => {
             break;
           }
           var node = new Node();
+          Object.assign(node.variables, this.variables);
           node.setSource(src, startTime, audioDelay);
           nodes.push(node);
           Node.recalculateBackground();
@@ -227,13 +237,30 @@ musicGraph(musicGraph => {
           break;
 
         case 'dispatch':
-          musicGraph.dispatchEvent(trigger.dispatchEvent, null);
+          try {
+            let value = trigger.expression.trim().length > 0
+              ? getCachedExpVal(trigger.expression).evaluate(this.variables)
+              : null;
+            musicGraph.dispatchEvent(trigger.dispatchEvent, value);
+          } catch(ex) {
+            console.warn('[TETR.IO PLUS] Music graph: error running trigger', trigger, ex);
+          }
+          break;
+
+        case 'set':
+          try {
+            this.variables[trigger.variable] = getCachedExpVal(trigger.expression).evaluate(this.variables);
+          } catch(ex) {
+            console.warn('[TETR.IO PLUS] Music graph: error running trigger', trigger, ex);
+          }
           break;
       }
     }
 
     toString() {
       let debug = ['Node ', this.source.name];
+      for (let [key, val] of Object.entries(this.variables))
+        debug.push(` ${key}=${val}`);
       for (let trigger of this.source.triggers) {
         debug.push('\n​ ​ ​ ​ ');
         debug.push(trigger.event + ' ');

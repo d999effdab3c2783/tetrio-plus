@@ -11,7 +11,7 @@ export default {
   template: html`
     <div class="section" v-if="node.type != 'root'">
       Select background:
-      <select class="node-audio-selector" v-model="node.background" @change="this.$emit('change')">
+      <select class="node-audio-selector" v-model="node.background" @change="$emit('change')">
         <option :value="null">None</option>
         <option :value="bg.id" v-for="bg of backgrounds">
           {{ bg.filename }} (ID: {{ bg.id }})
@@ -23,11 +23,11 @@ export default {
 
       <div>
         Background layer:
-        <input type="number" v-model.number="node.backgroundLayer" @change="this.$emit('change')" />
+        <input type="number" v-model.number="node.backgroundLayer" @change="$emit('change')" />
       </div>
 
       Select audio:
-      <select class="node-audio-selector" v-model="node.audio" @change="this.$emit('change')">
+      <select class="node-audio-selector" v-model="node.audio" @change="$emit('change')">
         <option :value="null">None</option>
         <option v-for="song of music" :value="song.id">
           {{ song.filename }} (ID: {{ song.id }})
@@ -42,7 +42,7 @@ export default {
           Volume <input
             type="range"
             v-model.number="node.effects.volume"
-            @change="this.$emit('change')"
+            @change="$emit('change')"
             step="0.01"
             min="0"
             max="1"
@@ -55,7 +55,7 @@ export default {
           Speed <input
             type="number"
             v-model.number="node.effects.speed"
-            @change="this.$emit('change')"
+            @change="$emit('change')"
             step="0.01"
             min="0"
             max="10"
@@ -68,7 +68,7 @@ export default {
           Start position <input
             type="number"
             v-model.number="node.audioStart"
-            @change="this.$emit('change')"
+            @change="$emit('change')"
             min="0"
           />s
         </div>
@@ -76,7 +76,7 @@ export default {
           End position <input
             type="number"
             v-model.number="node.audioEnd"
-            @change="this.$emit('change')"
+            @change="$emit('change')"
             min="0"
           />s
           <span class="form-control-value-display">

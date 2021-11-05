@@ -5,6 +5,7 @@ import {
   eventHasTarget
 } from '../events.js';
 import * as clipboard from '../clipboard.js';
+import /* non-ES6 */ '../../../shared/expval.js';
 const html = arg => arg.join(''); // NOOP, for editor integration.
 
 export default {
@@ -12,7 +13,7 @@ export default {
     <div>
       <div>
         <b>Event</b>
-        <select v-model="trigger.event" @change="this.$emit('change')">
+        <select v-model="trigger.event" @change="$emit('change')">
           <option :value="custom ? trigger.event : 'CUSTOM'">CUSTOM</option>
           <option
             v-for="evt of events"
@@ -33,28 +34,29 @@ export default {
       </div>
       <div v-if="custom">
         <b>Name</b>
-        <input type="text" @change="this.$emit('change')" v-model="trigger.event" />
+        <input type="text" @change="$emit('change')" v-model="trigger.event" />
       </div>
-      <div v-if="eventValueStrings[trigger.event]">
-        <b>{{ eventValueStrings[trigger.event] }}</b>
+      <div v-if="eventValueStrings[trigger.event] || custom">
+        <b>{{ eventValueStrings[trigger.event] || "Value" }}</b>
         <select v-model="trigger.valueOperator"
-                v-if="eventValueExtendedModes[trigger.event]"
-                @change="this.$emit('change')">
-          <option value="==" default>Equal to</option>
+                v-if="eventValueExtendedModes[trigger.event] || custom"
+                @change="$emit('change')">
+          <option value="any" default>Any</option>
+          <option value="==">Equal to</option>
           <option value="!=">Not equal to</option>
           <option value=">">Greater than</option>
           <option value="<">Less than</option>
         </select>
         <input
           type="number"
-          @change="this.$emit('change')"
+          v-if="trigger.valueOperator != 'any'"
+          @change="$emit('change')"
           v-model.number="trigger.value"
-          min="0"
         />
       </div>
       <div>
         <b>Mode</b>
-        <select v-model="trigger.mode" @change="this.$emit('change')">
+        <select v-model="trigger.mode" @change="$emit('change')">
           <option value="fork">Create new node (fork)</option>
           <option value="goto">Go to node (goto)</option>
           <option value="kill">Stop executing (kill)</option>
@@ -65,19 +67,41 @@ export default {
           <option value="random" :disabled="trigger.event == 'random-target'">
             Run a random-target trigger (random)
           </option>
+          <option value="set">
+            Set a variable (set)
+          </option>
         </select>
       </div>
       <div v-if="trigger.mode == 'dispatch'">
         <b>Target</b>
         <input
           type="text"
-          @change="this.$emit('change')"
+          @change="$emit('change')"
           v-model="trigger.dispatchEvent"
         />
       </div>
+      <div v-if="trigger.mode == 'set'">
+        <b>Variable</b>
+        <input
+          type="text"
+          @change="$emit('change')"
+          v-model="trigger.variable"
+        />
+      </div>
+      <div v-if="trigger.mode == 'dispatch' || trigger.mode == 'set'" :class="{ error: expressionError }">
+        <b>Value</b>
+        <input
+          type="text"
+          @change="$emit('change')"
+          v-model="trigger.expression"
+        />
+        <div v-if="expressionError">
+          {{ expressionError }}
+        </div>
+      </div>
       <div v-if="hasTarget(trigger)">
         <b>Target</b>
-        <select v-model="trigger.target" @change="this.$emit('change')">
+        <select v-model="trigger.target" @change="$emit('change')">
           <option :value="node.id" v-for="node of nodes">
             {{ node.name }}
           </option>
@@ -88,7 +112,7 @@ export default {
         <div class="form-control">
           <input
             type="checkbox"
-            @change="this.$emit('change')"
+            @change="$emit('change')"
             v-model="trigger.preserveLocation"
           />
           Preserve location after jumping
@@ -97,7 +121,7 @@ export default {
           Length ratio <input
             type="number"
             v-model.number="trigger.locationMultiplier"
-            @change="this.$emit('change')"
+            @change="$emit('change')"
             step="0.001"
             min="0.001"
           />
@@ -111,7 +135,7 @@ export default {
           <input
             type="checkbox"
             v-model="trigger.crossfade"
-            @change="this.$emit('change')"
+            @change="$emit('change')"
           />
           Crossfade
         </div>
@@ -119,7 +143,7 @@ export default {
           Crossfade duration <input
             type="number"
             v-model.number="trigger.crossfadeDuration"
-            @change="this.$emit('change')"
+            @change="$emit('change')"
             step="0.001"
             min="0"
           />s
@@ -143,7 +167,25 @@ export default {
     custom() {
       return !this.eventSet.has(this.trigger.event);
     },
+    expressionError() {
+      if (this.trigger.expression.length == 0 && this.trigger.mode == 'dispatch')
+        return null; // expression is optional for dispatch, value defaults to 0
+      try {
+        let expval = new ExpVal(this.trigger.expression);
+        let val = expval.evaluate({}, {});
+        return null;
+      } catch(ex) {
+        return ex.toString().replace(/^Error:\s*/, '');
+      }
+    },
     ...clipboard.computed
+  },
+  watch: {
+    'trigger.variable'(newVal) {
+      let sanitized = newVal.replace(/^[^A-Za-z_]|[^A-Za-z0-9_]/g, '_');
+      if (sanitized != newVal)
+        this.trigger.variable = sanitized;
+    }
   },
   methods: {
     allowsCrossfade(trigger) {

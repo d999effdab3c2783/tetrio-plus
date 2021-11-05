@@ -23,7 +23,7 @@ export default {
       </legend>
 
       <div v-show="!node.hidden">
-        <node-music-editor :node="node" @change="this.$emit('change')" />
+        <node-music-editor :node="node" @change="$emit('change')" />
 
         <div v-if="(reverseLinkLookupTable[node.id] || []).size > 0"
              class="section">
@@ -41,7 +41,7 @@ export default {
               :node="node"
               :trigger="trigger"
               @focus="focus"
-              @change="this.$emit('change')"
+              @change="$emit('change')"
             />
           </div>
           <div class="paste-and-trigger-controls">
@@ -99,9 +99,11 @@ export default {
         crossfade: false,
         crossfadeDuration: 1,
         dispatchEvent: '',
+        variable: '', // variable for 'set' mode
+        expression: '', // expression for 'set' mode
         // seconds for time-passed, value for text-combo, text-b2b, text-spike
         value: 0,
-        valueOperator: '==', // == != > <,
+        valueOperator: 'any', // any == != > <,
         anchor: {
           origin: { x: 100, y: 60 },
           target: { x: 100, y:  0 }

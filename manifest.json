@@ -1,10 +1,10 @@
 {
   "manifest_version": 2,
   "name": "Tetr.io+",
-  "version": "0.20.0",
+  "version": "0.21.0",
   "description": "Tetr.io client enhancer",
   "icons": { "256": "icons/tetrio-256.png" },
-
+  
   "permissions": [
     "webRequest",
     "webRequestBlocking",
@@ -12,7 +12,7 @@
     "storage",
     "*://*.tetr.io/*"
   ],
-  
+
   "page_action": {
     "default_icon": "icons/tetrio-256.png",
     "default_title": "TETR.IO PLUS",
@@ -74,6 +74,7 @@
       "source/content/connected-skins.js",
 
       "source/content/music-graph/01-init.js",
+      "source/shared/expval.js",
       "source/content/music-graph/03-node.js",
       "source/content/music-graph/04-dispatch-event.js",
       "source/content/music-graph/05-game-event-handlers.js",
