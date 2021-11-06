@@ -1,4 +1,5 @@
 import '../../shared/drop-handler.js';
+import /* non es6 */ '../../shared/migrate.js';
 
 let match = /install=([^=]+)/.exec(new URL(window.location).search);
 if (match) {
@@ -116,6 +117,7 @@ document.getElementById('export').addEventListener('click', async evt => {
 document.getElementById('clearData').addEventListener('click', async () => {
   if (confirm('Are you sure you want to clear all your TETR.IO PLUS data?')) {
     await browser.storage.local.clear();
+    await migrate(browser.storage.local);
     await browser.storage.local.set({
       version: browser.runtime.getManifest().version
     });

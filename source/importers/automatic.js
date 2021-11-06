@@ -6,6 +6,7 @@ import /* non es6 */ '../shared/tpse-sanitizer.js';
 import /* non es6 */ '../lib/jszip.min.js';
 
 export default async function automatic(importers, files, storage, options) {
+  await migrate(storage); // Ensure 'version' is set
   if (files.every(file => file.name.endsWith('.zip'))) {
     if (options.zipdepth > 5)
       throw new Error("Refusing to open a zip nested more than 5 layers deep");
