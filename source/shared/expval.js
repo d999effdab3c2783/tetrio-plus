@@ -142,6 +142,7 @@ class ExpVal {
           case  '/': stack.push(b  / a); break;
           case  '%': stack.push(b  % a); break;
           case '**': stack.push(b ** a); break;
+          case '==': stack.push(b == a); break;
           case '>=': stack.push(b >= a); break;
           case '<=': stack.push(b <= a); break;
           case  '>': stack.push(b  > a); break;
@@ -149,6 +150,7 @@ class ExpVal {
           case '!=': stack.push(b != a); break;
           case '&&': stack.push(b && a); break;
           case '||': stack.push(b || a); break;
+          default: throw new Error("Unknown operator " + token.value);
         }
       }
     }
