@@ -162,9 +162,12 @@ async function sanitizeAndLoadTPSE(data, storage) {
           return `ERROR: Expected lowercase alphabetical string at [].id`;
 
         if (typeof bg.filename != 'string')
-          return `ERROR: Expected alphabetical string at [].filename`;
+          return `ERROR: Expected string at [].filename`;
 
-        if (Object.keys(bg).length != 2)
+        if (typeof bg.type != 'string')
+          return `ERROR: Expected type at [].type`;
+
+        if (Object.keys(bg).length != 3)
           return `ERROR: Unexpected extra keys at []`;
 
         let img = importData['background-' + bg.id];
