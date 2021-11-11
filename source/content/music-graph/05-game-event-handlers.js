@@ -8,12 +8,10 @@ musicGraph(({ dispatchEvent }) => {
           let hidden = mut.target.classList.contains("hidden");
           if (wasHidden == hidden) continue;
           wasHidden = hidden;
-
-          let evt = hidden ? 'menu-close-' + type : 'menu-open-' + type;
-          dispatchEvent(evt, null);
+          dispatchEvent(`menu-${type}-${hidden ? 'close' : 'open'}`, null);
         }
       });
-      
+
       observer.observe(menu, {
         attributes: true,
         attributeFilter: ['class'],
