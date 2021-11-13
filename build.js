@@ -1,4 +1,5 @@
 #!node
+// To be used by build.js
 const vueutil = require('@vue/component-compiler-utils');
 const compiler = require('vue-template-compiler');
 const { visit } = require('ast-types');
