@@ -1,0 +1,25 @@
+image: node:latest
+
+before_script:
+    - apt-get update
+    - apt-get install zip p7zip-full -y # build script
+    - apt-get install build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev -y # node canvas deps
+cache:
+  paths:
+    - node_modules/
+
+stages:
+  - build
+
+build-releases:
+  stage: build
+  script:
+    - yarn
+    - bash ./pack.sh
+    - bash ./pack-electron.sh
+    - zip -r app.asar.zip -9 app.asar
+  artifacts:
+    paths:
+      - tetrioplus.xpi
+      - app.asar.zip
+    expire_in: 1 week
