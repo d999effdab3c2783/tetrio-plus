@@ -43,11 +43,11 @@ createRewriteFilter("Tetrio.js BG", "https://tetr.io/js/tetrio.js*", {
 
     let backgrounds = [];
     if (res.musicGraphBackground) {
-      backgrounds.push({ id: 'transparent' });
+      backgrounds.push({ id: 'transparent', type: 'image' });
     } else if (res.transparentBgEnabled) {
-      backgrounds.push({ id: 'transparent' });
+      backgrounds.push({ id: 'transparent', type: 'image' });
     } else if (res.animatedBgEnabled && res.animatedBackground) {
-      backgrounds.push({ id: 'transparent' });
+      backgrounds.push({ id: 'transparent', type: 'image' });
     } else if (res.backgrounds) {
       backgrounds.push(...res.backgrounds)
     }
