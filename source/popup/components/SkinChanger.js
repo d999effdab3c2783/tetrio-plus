@@ -11,6 +11,9 @@ export default {
         <button @click="resetSkin" title="Removes the existing custom skin">
           Remove skin
         </button>
+        <button @click="openMiscChanger" style="float: right" title="Opens an editor for other non-block skins">
+          Edit other skins
+        </button>
       </div>
 
       <div class="preview-group">
@@ -108,21 +111,27 @@ export default {
       ]);
       await this.loadSkin();
     },
-    async openImageChanger() {
+    async open(url) {
       let { name } = await browser.runtime.getBrowserInfo();
       if (name == 'Fennec') {
         browser.tabs.create({
-          url: browser.extension.getURL('source/panels/skinpicker/index.html'),
+          url: browser.extension.getURL(url),
           active: true
         });
       } else {
         browser.windows.create({
           type: 'detached_panel',
-          url: browser.extension.getURL('source/panels/skinpicker/index.html'),
+          url: browser.extension.getURL(url),
           width: 659,
           height: 550
         });
       }
+    },
+    async openMiscChanger() {
+      await this.open('source/panels/generic-texture-replacer/index.html');
+    },
+    async openImageChanger() {
+      await this.open('source/panels/skinpicker/index.html');
     }
   }
 }

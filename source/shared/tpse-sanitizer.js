@@ -23,6 +23,19 @@ async function sanitizeAndLoadTPSE(data, storage) {
     }
   }
 
+  function parseFile(key, mimeFilter) {
+    return async dataUri => {
+      let match = /^data:(.+?);base64,/.exec(dataUri);
+      if (!match) return `ERROR: Missing/invalid file`;
+
+      if (mimeFilter && !mimeFilter.test(match[1]))
+        return `ERROR: invalid file type, expected ${mimeFilter} got ${match[1]}`;
+
+      await storage.set({ [key]: dataUri });
+      return 'success';
+    }
+  }
+
   function electronOnly(callback) {
     return async value => {
       if (!browser.electron)
@@ -72,30 +85,25 @@ async function sanitizeAndLoadTPSE(data, storage) {
     forceNearestScaling: parseBoolean('forceNearestScaling'),
     windowTitleStatus: electronOnly(parseBoolean('windowTitleStatus')),
     musicGraphBackground: parseBoolean('musicGraphBackground'),
-    skin: async dataUri => {
-      if (typeof dataUri != 'string' || !/^data:image\/.+?;base64,/.test(dataUri))
-        return `ERROR: Missing/invalid image`
-      await storage.set({ skin: dataUri });
-      return 'success';
-    },
-    ghost: async dataUri => {
-      if (typeof dataUri != 'string' || !/^data:image\/.+?;base64,/.test(dataUri))
-        return `ERROR: Missing/invalid image`
-      await storage.set({ ghost: dataUri });
-      return 'success';
-    },
-    skinAnim: async dataUri => {
-      if (typeof dataUri != 'string' || !/^data:image\/.+?;base64,/.test(dataUri))
-        return `ERROR: Missing/invalid image`
-      await storage.set({ skinAnim: dataUri });
-      return 'success';
-    },
-    ghostAnim: async dataUri => {
-      if (typeof dataUri != 'string' || !/^data:image\/.+?;base64,/.test(dataUri))
-        return `ERROR: Missing/invalid image`
-      await storage.set({ ghostAnim: dataUri });
-      return 'success';
-    },
+    board: parseFile('board', /^image\/.+$/),
+    queue: parseFile('queue', /^image\/.+$/),
+    grid: parseFile('grid', /^image\/.+$/),
+    particle_beam: parseFile('particle_beam', /^image\/.+$/),
+    particle_beams_beam: parseFile('particle_beams_beam', /^image\/.+$/),
+    particle_bigbox: parseFile('particle_bigbox', /^image\/.+$/),
+    particle_box: parseFile('particle_box', /^image\/.+$/),
+    particle_chip: parseFile('particle_chip', /^image\/.+$/),
+    particle_chirp: parseFile('particle_chirp', /^image\/.+$/),
+    particle_dust: parseFile('particle_dust', /^image\/.+$/),
+    particle_fbox: parseFile('particle_fbox', /^image\/.+$/),
+    particle_fire: parseFile('particle_fire', /^image\/.+$/),
+    particle_particle: parseFile('particle_particle', /^image\/.+$/),
+    particle_smoke: parseFile('particle_smoke', /^image\/.+$/),
+    particle_star: parseFile('particle_star', /^image\/.+$/),
+    skin: parseFile('skin', /^image\/.+$/),
+    ghost: parseFile('ghost', /^image\/.+$/),
+    skinAnim: parseFile('skinAnim', /^image\/.+$/),
+    ghostAnim: parseFile('ghostAnim', /^image\/.+$/),
     skinAnimMeta: async object => {
       if (typeof object != 'object')
         return `ERROR: Expected object`;
