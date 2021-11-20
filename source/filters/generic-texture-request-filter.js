@@ -21,7 +21,7 @@ for (let [key, url] of Object.entries(keys)) {
   createRewriteFilter(`Texture asset: ${key}`, url + '*', {
     enabledFor: async (storage, url) => {
       let res = await storage.get(key);
-      return res[key];
+      return !!res[key];
     },
     onStop: async (storage, url, src, callback) => {
       callback({

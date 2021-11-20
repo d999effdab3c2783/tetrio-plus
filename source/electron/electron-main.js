@@ -271,7 +271,7 @@ app.whenReady().then(async () => {
       );
       // query params break some stuffs (why? what stuff?)
       const url = originalUrl.split('?')[0];
-      
+
       const bypassed = null != new URL(originalUrl)
         .searchParams.get('bypass-tetrio-plus');
 
@@ -287,7 +287,7 @@ app.whenReady().then(async () => {
           greenlog("http response ", contentType);
           let raw = [];
 
-          if (/^audio/.test(contentType)) {
+          if (/^(image|audio)/.test(contentType)) {
             // No encoding
           } else {
             response.setEncoding('utf8');

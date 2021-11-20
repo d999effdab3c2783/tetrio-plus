@@ -12,7 +12,7 @@ let app = new Vue({
           <option :value="key" v-for="key of Object.keys(keys)">{{ key }}</option>
         </select>
         with
-        <input name="file" ref="file" type="file" @change="set" :disabled="!key"/>
+        <input name="file" ref="file" type="file" accept="image/*" @change="set" :disabled="!key"/>
       </div>
 
       <div class="preview" v-if="keys[key]">
@@ -26,9 +26,9 @@ let app = new Vue({
       <div class="preview" v-if="keys[key]">
         <h2>Current <button @click="remove" :disabled="!isSet">Remove</button></h2>
         <div class="image-container">
-          <img :src="keys[key] + cacheBuster" :key="keys[key] + cacheBuster" />
+          <img :src="currentSrc" :key="currentSrc" />
         </div>
-        <a :href="keys[key] + cacheBuster" download>Download</a>
+        <a :href="currentSrc" download>Download</a>
       </div>
     </div>
   `,
@@ -56,6 +56,16 @@ let app = new Vue({
   },
   async mounted() {
     await this.reload();
+
+  },
+  computed: {
+    currentSrc() {
+      let prefix = window.browser?.electron
+        ? 'tetrio-plus://tetrio-plus/'
+        : 'https://tetr.io/';
+      let path = this.keys[this.key].slice('https://tetr.io/'.length);
+      return prefix + path + this.cacheBuster;
+    }
   },
   watch: {
     async key() {
