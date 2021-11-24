@@ -14,7 +14,7 @@ if (typeof window !== 'undefined' && window.migrate) { // module issues
  *
  * Relies on migrate.js
  */
-async function sanitizeAndLoadTPSE(data, storage) {
+async function sanitizeAndLoadTPSE(data, storage, options) {
   function parseBoolean(key) {
     return async bool => {
       if (typeof bool !== 'boolean') return 'ERROR: Expected boolean';
@@ -178,11 +178,12 @@ async function sanitizeAndLoadTPSE(data, storage) {
         if (Object.keys(bg).length != 3)
           return `ERROR: Unexpected extra keys at []`;
 
-        let img = importData['background-' + bg.id];
-        if (typeof img != 'string' || !/^data:.+?;base64,/.test(img))
-          return `ERROR: Missing/invalid image ${bg.id}`
-
-        toSet['background-' + bg.id] = img;
+        if (!options.skipFileDependencies) {
+          let img = importData['background-' + bg.id];
+          if (typeof img != 'string' || !/^data:.+?;base64,/.test(img))
+            return `ERROR: Missing/invalid image ${bg.id}`
+          toSet['background-' + bg.id] = img;
+        }
       }
 
       toSet.backgrounds = JSON.parse(JSON.stringify(backgrounds));
@@ -268,11 +269,12 @@ async function sanitizeAndLoadTPSE(data, storage) {
           if (['id', 'filename', 'metadata', 'override'].indexOf(key) == -1)
             return `ERROR: Unexpected value at [].${key}`;
 
-        let mp3 = importData['song-' + song.id];
-        if (typeof mp3 != 'string' || !/^data:audio\/.+?;base64,/.test(mp3))
-          return `ERROR: Missing/invalid songfile ${song.id}`
-
-        toSet['song-' + song.id] = mp3;
+        if (!options.skipFileDependencies) {
+          let mp3 = importData['song-' + song.id];
+          if (typeof mp3 != 'string' || !/^data:audio\/.+?;base64,/.test(mp3))
+            return `ERROR: Missing/invalid songfile ${song.id}`
+          toSet['song-' + song.id] = mp3;
+        }
       }
 
       toSet.music = JSON.parse(JSON.stringify(music));
@@ -303,10 +305,12 @@ async function sanitizeAndLoadTPSE(data, storage) {
           if (typeof node.audio != 'string')
             return `ERROR: Expected string or null at [].audio`;
 
-          let mp3 = importData['song-' + node.audio];
-          if (typeof mp3 != 'string' || !/^data:audio\/.+?;base64,/.test(mp3))
-            return `ERROR: Missing/invalid songfile ${node.audio}`;
-          toSet['song-' + node.audio] = mp3;
+          if (!options.skipFileDependencies) {
+            let mp3 = importData['song-' + node.audio];
+            if (typeof mp3 != 'string' || !/^data:audio\/.+?;base64,/.test(mp3))
+              return `ERROR: Missing/invalid songfile ${node.audio}`;
+            toSet['song-' + node.audio] = mp3;
+          }
         }
 
         if (!isNone(node.background)) {
@@ -316,9 +320,11 @@ async function sanitizeAndLoadTPSE(data, storage) {
             return `ERROR: Expected number at [].backgroundLayer`;
 
           let bg = importData['background-' + node.background];
-          if (typeof bg != 'string' || !/^data:.+?\/.+?;base64,/.test(bg))
-            return `ERROR: Missing/invalid background file ${node.background}`;
-          toSet['background-' + node.background] = bg;
+          if (!options.skipFileDependencies) {
+            if (typeof bg != 'string' || !/^data:.+?\/.+?;base64,/.test(bg))
+              return `ERROR: Missing/invalid background file ${node.background}`;
+            toSet['background-' + node.background] = bg;
+          }
         }
 
         if (typeof node.hidden != 'boolean')

@@ -226,6 +226,9 @@ const app = new Vue({
             <button @click="openSettingsIO()" title="Opens the settings manager">
               Manage data / import TPSE
             </button>
+            <button @click="openTemplates()" title="Opens the template list">
+              Templates
+            </button>
           </div>
         </div>
       </fieldset>
@@ -354,10 +357,7 @@ const app = new Vue({
       console.log("Enabled debug mode")
       this.debugMode = true;
     },
-    async openSettingsIO(installUrl) {
-      let url = 'source/panels/settingsImportExport/index.html';
-      if (installUrl) url += '?install=' + encodeURIComponent(installUrl);
-
+    async openPanel(url, width=600, height=520) {
       let { name } = await browser.runtime.getBrowserInfo();
       if (name == 'Fennec') {
         browser.tabs.create({
@@ -368,10 +368,18 @@ const app = new Vue({
         browser.windows.create({
           type: 'detached_panel',
           url: browser.extension.getURL(url),
-          width: 600,
-          height: 520
+          width: width,
+          height: height
         });
       }
+    },
+    async openSettingsIO(installUrl) {
+      let url = 'source/panels/settingsImportExport/index.html';
+      if (installUrl) url += '?install=' + encodeURIComponent(installUrl);
+      await this.openPanel(url);
+    },
+    async openTemplates() {
+      await this.openPanel('source/panels/templates/index.html', 600, 170);
     },
     openMonetizationInfo() {
       browser.windows.create({
