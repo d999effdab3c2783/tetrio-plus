@@ -14,7 +14,7 @@ if (typeof window !== 'undefined' && window.migrate) { // module issues
  *
  * Relies on migrate.js
  */
-async function sanitizeAndLoadTPSE(data, storage, options) {
+async function sanitizeAndLoadTPSE(data, storage, options={}) {
   function parseBoolean(key) {
     return async bool => {
       if (typeof bool !== 'boolean') return 'ERROR: Expected boolean';
