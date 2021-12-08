@@ -42,6 +42,9 @@ fs.writeFileSync(
   ).replace(
     /(mainWindow = win;)/,
     '$1 onMainWindow(mainWindow);'
+  ).replace(
+    /Report this to osk\./g,
+    `Note: TETR.IO PLUS is installed. Do not report issues to osk/TETR.IO while using TETR.IO PLUS.`
   )
 );
 
