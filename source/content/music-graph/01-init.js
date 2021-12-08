@@ -23,8 +23,9 @@ function musicGraph(module) {
     'musicGraphEnabled',
     'musicGraphBackground'
   ]);
-  if (!musicEnabled || !musicGraphEnabled || !musicGraph)
+  if (!musicEnabled || !musicGraphEnabled)
     return;
+  musicGraph = musicGraph ?? '[]';
 
   const musicRoot = '/res/bgm/akai-tsuchi-wo-funde.mp3?song=';
   const audioContext = new AudioContext();
