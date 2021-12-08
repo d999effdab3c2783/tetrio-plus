@@ -146,34 +146,57 @@
     resize();
   });
 
-  function onGameKey(obj) {
-    if (obj.type == 'end') {
-      buttons.forEach(el => el.setActive(false));
-      return;
-    }
-
-    let elem = buttonMap[obj.data.key];
-    if (!elem) return;
-
-    switch (obj.type) {
-      case 'keyup':
-        elem.setActive(false);
-        break;
-      case 'keydown':
-        elem.setActive(true);
-        break;
-    }
-  }
-
-  let game = null;
+  let games = [];
   document.addEventListener('tetrio-plus-on-game', evt => {
     // If a game has a socket, its someone else's board
     // Singleplayer, replay, and own boards in multiplayer have no sockets
     if (evt.detail.socket()) return;
-    if (game) game.unbind(onGameKey);
-    buttons.forEach(el => el.classList.toggle('active', false));
-    game = evt.detail;
-    game.bind(onGameKey);
-    // console.log("Bound game", game);
+
+    let game = evt.detail;
+    games.push(game);
+
+    game.id = Date.now();
+    console.log("Got game", game.id);
+
+    function dropGame(game) {
+      if (games.includes(game)) {
+        games.splice(games.indexOf(game), 1);
+        game.unbind(game.__tp_onstart);
+        console.log("Dropped game", game.id);
+      }
+    }
+    function onEvent(evt) {
+      game.__tp_lastevent = Date.now();
+
+      if (evt.type == 'start') {
+        buttons.forEach(el => el.setActive(false));
+        for (let othergame of games.slice()) {
+          if (Date.now() < othergame.__tp_lastevent + 10000) continue;
+          dropGame(othergame);
+        }
+      }
+
+      if (evt.type == 'end') {
+        buttons.forEach(el => el.setActive(false));
+        dropGame(game);
+        return;
+      }
+
+      let elem = buttonMap[evt.data.key];
+      if (!elem) return;
+
+      switch (evt.type) {
+        case 'keyup':
+          elem.setActive(false);
+          break;
+        case 'keydown':
+          elem.setActive(true);
+          break;
+      }
+    }
+
+    game.bind(onEvent);
+    game.__tp_onstart = onEvent;
+    game.__tp_lastevent = Date.now();
   });
 })().catch(ex => console.error(ex));
