@@ -156,7 +156,6 @@
     games.push(game);
 
     game.id = Date.now();
-    console.log("Got game", game.id);
 
     function dropGame(game) {
       if (games.includes(game)) {

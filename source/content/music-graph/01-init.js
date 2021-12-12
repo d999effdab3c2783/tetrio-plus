@@ -14,18 +14,27 @@ function musicGraph(module) {
     musicGraph,
     musicEnabled,
     musicGraphEnabled,
-    musicGraphBackground
+    musicGraphBackground,
+    musicGraphNodeLimit,
+    musicGraphReportedEventRateLimit,
+    musicGraphHardEventRateLimit
   } = await storage.get([
     'music',
     'backgrounds',
     'musicGraph',
     'musicEnabled',
     'musicGraphEnabled',
-    'musicGraphBackground'
+    'musicGraphBackground',
+    'musicGraphNodeLimit',
+    'musicGraphReportedEventRateLimit',
+    'musicGraphHardEventRateLimit'
   ]);
   if (!musicEnabled || !musicGraphEnabled)
     return;
   musicGraph = musicGraph ?? '[]';
+  musicGraphNodeLimit = musicGraphNodeLimit ?? 100;
+  musicGraphReportedEventRateLimit = musicGraphReportedEventRateLimit ?? 250;
+  musicGraphHardEventRateLimit = musicGraphHardEventRateLimit ?? 10000;
 
   const musicRoot = '/res/bgm/akai-tsuchi-wo-funde.mp3?song=';
   const audioContext = new AudioContext();
@@ -55,126 +64,23 @@ function musicGraph(module) {
   }
 
   const musicGraphData = {
+    initializeMusicGraph,
     nodes: [],
     cleanup: [],
     audioContext,
     graph,
     imageCache: {},
-    sendDebugEvent,
     audioBuffers,
     getGlobalVolume,
+    musicGraphNodeLimit,
+    musicGraphReportedEventRateLimit,
+    musicGraphHardEventRateLimit,
     backgroundsEnabled: musicGraphBackground
   };
 
   musicGraphData.cleanup.push(() => {
     audioContext.close();
   });
-
-  // Event stream for the music graph debugger
-  let port = null;
-  function reconnect() {
-    if (port) port.disconnect();
-    console.log("[TETR.IO PLUS] Music graph attempting debugger connection");
-    port = browser.runtime.connect({
-      name: 'music-graph-event-stream'
-    });
-
-    let reconnTimeout = setTimeout(() => {
-      // console.log("[TETR.IO PLUS] Music graph attempting reconnection");
-      reconnect();
-    }, 10000);
-
-    port.onDisconnect.addListener(() => {
-      console.log("[TETR.IO PLUS] Music graph debugger disconnected");
-      clearTimeout(reconnTimeout);
-      setTimeout(() => reconnect(), 5000);
-    });
-
-    port.onMessage.addListener(async (msg) => {
-      if (msg.type == 'spawn') {
-        if (!graph[msg.sourceId]) return;
-        let node = new musicGraphData.Node();
-        musicGraphData.nodes.push(node);
-        node.setSource(graph[msg.sourceId]);
-        console.log('[TETR.IO PLUS] Music graph debugger spawned node', node);
-      }
-      if (msg.type == 'kill') {
-        for (let node of musicGraphData.nodes)
-          if (node.id == msg.instanceId) {
-            node.destroy();
-            console.log("[TETR.IO PLUS] Music graph debugger destroyed node", node);
-          }
-      }
-      if (msg.type == 'hello') {
-        console.log("[TETR.IO PLUS] Music graph debugger connected");
-        clearTimeout(reconnTimeout);
-        // Catch the debugger up to the existing state...
-        sendDebugEvent('reset');
-        for (let node of musicGraphData.nodes) {
-          sendDebugEvent('node-created', {
-            instanceId: node.id
-          });
-          sendDebugEvent('node-source-set', {
-            instanceId: node.id,
-            sourceId: node.source.id,
-            lastSourceId: null
-          });
-          for (let [name, value] of Object.values(node.variables)) {
-            sendDebugEvent('node-set-variable', {
-              instanceId: node.id,
-              sourceId: node.source.id,
-              variable: name,
-              value: value
-            });
-          }
-        }
-      }
-      if (msg.type == 'reload') {
-        console.log("[TETR.IO PLUS] RELOADING MUSIC GRAPH");
-
-        try {
-          // Clean up old graph...
-          port.disconnect();
-          port = null;
-          let resurrections = [];
-          for (let node of musicGraphData.nodes) {
-            resurrections.push({
-              id: node.id,
-              sourceId: node.source.id,
-              time: node.currentTime,
-              variables: node.variables,
-              children: node.children.map(child => child.id)
-            });
-            musicGraphData.cleanup.push(() => node.destroy());
-          }
-          for (let handler of musicGraphData.cleanup)
-            handler();
-
-          // Start new graph and copy what nodes we can
-          let newGraphData = await initializeMusicGraph(false);
-          for (let {id, sourceId, time, variables, children} of resurrections) {
-            let source = newGraphData.graph[sourceId];
-            if (!source) continue;
-            let node = new newGraphData.Node();
-            Object.assign(node.variables, variables);
-            node.children = children
-              .map(childId => newGraphData.nodes.filter(node => node.id == childId)[0])
-              .filter(e => e);
-            newGraphData.nodes.push(node);
-            node.setSource(source, time, 0, false, true);
-          }
-        } catch(ex) {
-          alert("Failed to reload music graph: " + ex);
-          console.error(ex);
-        }
-      }
-    });
-  }
-  reconnect();
-  function sendDebugEvent(name, data) {
-    if (!port) return;
-    port.postMessage({ type: 'event', name, data });
-  }
 
   // cache images so they can appear instantly
   let cache = [];
@@ -200,7 +106,7 @@ function musicGraph(module) {
       video.style.position = 'fixed';
       video.style.objectFit = 'cover';
       video.style['z-index'] = '-1';
-      musicGraphData.imageCache[el.id] = video;
+      musicGraphData.imageCache[el.id] = { base: video, ready: [video] };
     } else {
       let img = new Image();
       img.src = '/res/bg/1.jpg?bgId=' + el.background;
@@ -209,10 +115,10 @@ function musicGraph(module) {
       img.style.position = 'fixed';
       img.style.objectFit = 'cover';
       img.style['z-index'] = '-1';
-      musicGraphData.imageCache[el.id] = img;
+      musicGraphData.imageCache[el.id] = { base: img, ready: [img] };
     }
   }
-  for (let node of Object.values(musicGraphData.imageCache)) {
+  for (let { base: node } of Object.values(musicGraphData.imageCache)) {
     node.style.opacity = 0;
     document.body.appendChild(node); // force preload
   }

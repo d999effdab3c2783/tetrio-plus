@@ -136,6 +136,25 @@ input:invalid {
   background-image:
     linear-gradient(to right, grey 1px, transparent 1px),
     linear-gradient(to bottom, grey 1px, transparent 1px);
+  position: relative;
+}
+.visual-editor > .events-per-second {
+  position: absolute;
+  right: 0px;
+  top: 0px;
+
+  width: 240px;
+  max-width: 100%;
+
+  margin: 0px;
+  padding: 2px 4px;
+  border-left: 2px solid black;
+  border-bottom: 2px solid black;
+  border-bottom-left-radius: 4px;
+
+  background-color: white;
+  font-family: monospace;
+  text-align: center;
 }
 .visual-editor .node {
   --x: 0;
@@ -222,7 +241,7 @@ input:invalid {
 }
 .visual-editor .live-node > .live-node-tooltip {
   position: fixed;
-  transform: translateY(calc(-50% + var(--size)/2));
+  transform: translateX(calc(-50%)) translateY(-100%);
 }
 .visual-editor .live-node > .live-node-tooltip > .tooltip-inner {
   background-color: white;
@@ -275,4 +294,7 @@ input:invalid {
 }
 .visual-editor .live-node {
   z-index: 4;
+}
+.visual-editor .live-node > .live-node-tooltip {
+  z-index: 5;
 }

@@ -8,6 +8,7 @@ musicGraph(musicGraph => {
     audioBuffers,
     getGlobalVolume,
     backgroundsEnabled,
+    musicGraphNodeLimit,
     ExpVal
   } = musicGraph;
 
@@ -61,12 +62,22 @@ musicGraph(musicGraph => {
         y: 0,
         width: 100,
         height: 100,
-        opacity: 0
+        opacity: 0,
+        currentElement: null
       };
     }
 
     static recalculateBackground() {
       if (!backgroundsEnabled) return;
+
+      let justRemoved = new Set(background.children);
+      while (background.lastChild) {
+        background.lastChild.__tetrioplus_image_cache.push(background.lastChild);
+        background.lastChild.remove();
+      }
+
+      for (let node of nodes)
+        node.background.currentElement = null;
 
       let sortedNodes = nodes
         .filter(node => node.source.background)
@@ -77,16 +88,17 @@ musicGraph(musicGraph => {
         })
         .reverse()
         .map(node => {
-          let el = imageCache[node.source.id];
+          let cache = imageCache[node.source.id];
+          let el = cache.ready.length > 0
+            ? cache.ready.pop()
+            : cache.base.cloneNode();
+          el.__tetrioplus_image_cache = cache.ready;
+          node.background.currentElement = el;
           el.style.opacity = 1;
           return [node, el];
         });
 
-      let justRemoved = new Set(background.children);
-
-      while (background.lastChild)
-        background.lastChild.remove();
-      background.append(...sortedNodes.map(([node, _]) => node));
+      background.append(...sortedNodes.map(([node, el]) => el));
 
       for (let [node, el] of sortedNodes) {
         el.style.left = `${node.background.x}vw`;
@@ -242,8 +254,8 @@ musicGraph(musicGraph => {
         get $bg_width() { return node.background.width },
         get $bg_height() { return node.background.height },
         get $bg_opacity() { return node.background.opacity },
-        get $bg_paused() { return imageCache[node.source.id]?.paused || 0 },
-        get $bg_time() { return imageCache[node.source.id]?.currentTime || 0 },
+        get $bg_paused() { return node.background.currentElement?.paused || 0 },
+        get $bg_time() { return node.background.currentElement?.currentTime || 0 },
 
         set $bg_x(val) {
           node.background.x = Node._constrain(val, -100, 100);
@@ -266,7 +278,7 @@ musicGraph(musicGraph => {
           Node.recalculateBackground();
         },
         set $bg_paused(val) {
-          let video = imageCache[node.source.id];
+          let video = node.background.currentElement;
           if (!(video instanceof HTMLVideoElement)) return;
           if (val) {
             video.pause();
@@ -275,28 +287,35 @@ musicGraph(musicGraph => {
           }
         },
         set $bg_time(val) {
-          let video = imageCache[node.source.id];
+          let video = node.background.currentElement;
           if (!(video instanceof HTMLVideoElement)) return;
-          video.currentTime = Node._constrain(val, 0, video.duration);
+          video.currentTime = Node._constrain(val, 0, video.duration || Infinity);
           video.pause();
         }
       }
     }
 
     destroy() {
-      sendDebugEvent('node-destroyed', {
-        instanceId: this.id,
-        sourceId: this.source.id
-      });
+      if (!this.destroyed) {
+        sendDebugEvent('node-destroyed', {
+          instanceId: this.id,
+          sourceId: this.source.id
+        });
+      }
       this.destroyed = true;
-      if (this.audio)
-        this.audio.stop();
+
+      if (this.audio) this.audio.stop();
+
       let index = nodes.indexOf(this);
-      if (index !== -1)
-        nodes.splice(index, 1);
+      if (index !== -1) nodes.splice(index, 1);
+
+      for (let timeout of this.timeouts)
+        clearTimeout(timeout);
+
       for (let child of this.children)
         child.runTriggersByName('parent-node-destroyed', null);
       this.children.length = 0;
+
       Node.recalculateBackground();
     }
 
@@ -324,71 +343,71 @@ musicGraph(musicGraph => {
     }
 
     runTrigger(trigger, value, audioDelay=0) {
-      let result = this.testTrigger(trigger, value);
-      sendDebugEvent('node-run-trigger', {
-        instanceId: this.id,
-        sourceId: this.source.id,
-        success: result,
-        trigger: this.source.triggers.indexOf(trigger),
-        value: value
-      });
-      if (!result) return false;
+      if (this.destroyed) return;
+      try {
+        let result = this.testTrigger(trigger, value);
+        sendDebugEvent('node-run-trigger', {
+          instanceId: this.id,
+          sourceId: this.source.id,
+          success: result,
+          trigger: this.source.triggers.indexOf(trigger),
+          value: value
+        }, true);
+        if (!result) return false;
 
-      let startTime = trigger.preserveLocation
-        ? this.currentTime * trigger.locationMultiplier
-        : 0;
-      switch (trigger.mode) {
-        case 'fork': {
-          var src = graph[trigger.target];
-          if (!src) {
-            console.error("[TETR.IO PLUS] Unknown node #" + trigger.target);
+        let startTime = trigger.preserveLocation
+          ? this.currentTime * trigger.locationMultiplier
+          : 0;
+        switch (trigger.mode) {
+          case 'fork': {
+            var src = graph[trigger.target];
+            if (!src) {
+              console.error("[TETR.IO PLUS] Unknown node #" + trigger.target);
+              break;
+            }
+            if (nodes.length >= musicGraphNodeLimit) {
+              throw new Error(
+                "[TETR.IO PLUS] Music graph: Too many nodes (" + nodes.length +
+                "), aborting fork. You can raise this limit in the Music " +
+                "Graph's global config."
+              );
+            }
+            var node = new Node();
+            Object.assign(node.variables, this.variables);
+            nodes.push(node);
+            let crossfade = trigger.crossfade && trigger.crossfadeDuration;
+            node.setSource(src, startTime, audioDelay, crossfade, false, this.source.id);
+            Node.recalculateBackground();
+            this.children.push(node);
             break;
           }
-          if (nodes.length >= 100) {
-            console.error("[TETR.IO PLUS] Music graph: Too many nodes, aborting fork.");
+          case 'goto': {
+            var src = graph[trigger.target];
+            if (!src) {
+              console.error("[TETR.IO PLUS] Unknown node #" + trigger.target);
+              break;
+            }
+            let crossfade = trigger.crossfade && trigger.crossfadeDuration;
+            this.setSource(src, startTime, audioDelay, crossfade);
             break;
           }
-          var node = new Node();
-          Object.assign(node.variables, this.variables);
-          nodes.push(node);
-          let crossfade = trigger.crossfade && trigger.crossfadeDuration;
-          node.setSource(src, startTime, audioDelay, crossfade, false, this.source.id);
-          Node.recalculateBackground();
-          this.children.push(node);
-          break;
-        }
-
-        case 'goto': {
-          var src = graph[trigger.target];
-          if (!src) {
-            console.error("[TETR.IO PLUS] Unknown node #" + trigger.target);
+          case 'kill': {
+            this.destroy();
             break;
           }
-          let crossfade = trigger.crossfade && trigger.crossfadeDuration;
-          this.setSource(src, startTime, audioDelay, crossfade);
-          break;
-        }
-
-        case 'kill': {
-          this.destroy();
-          break;
-        }
-
-        case 'random': {
-          let triggers = this.source.triggers.filter(trigger =>
-            trigger.event == 'random-target' && trigger.mode != 'random'
-          );
-          if (triggers.length == 0) break;
-          this.runTrigger(
-            triggers[Math.floor(Math.random() * triggers.length)],
-            null,
-            SHORT_SYNC_DELAY/1000
-          );
-          break;
-        }
-
-        case 'dispatch': {
-          try {
+          case 'random': {
+            let triggers = this.source.triggers.filter(trigger =>
+              trigger.event == 'random-target' && trigger.mode != 'random'
+            );
+            if (triggers.length == 0) break;
+            this.runTrigger(
+              triggers[Math.floor(Math.random() * triggers.length)],
+              null,
+              SHORT_SYNC_DELAY/1000
+            );
+            break;
+          }
+          case 'dispatch': {
             let val = trigger.dispatchExpression.trim().length > 0
               ? ExpVal.get(trigger.dispatchExpression).evaluate({
                   ...this.variables,
@@ -397,14 +416,9 @@ musicGraph(musicGraph => {
                 })
               : null;
             musicGraph.dispatchEvent(trigger.dispatchEvent, val);
-          } catch(ex) {
-            console.warn('[TETR.IO PLUS] Music graph: error running trigger', trigger, ex);
+            break;
           }
-          break;
-        }
-
-        case 'set': {
-          try {
+          case 'set': {
             let val = ExpVal.get(trigger.setExpression).evaluate({
               ...this.variables,
               ...this.computedVariables,
@@ -422,11 +436,11 @@ musicGraph(musicGraph => {
                 value: val
               });
             }
-          } catch(ex) {
-            console.warn('[TETR.IO PLUS] Music graph: error running trigger', trigger, ex);
+            break;
           }
-          break;
         }
+      } catch(ex) {
+        console.warn('[TETR.IO PLUS] Music graph: error running trigger', trigger, ex);
       }
     }
 

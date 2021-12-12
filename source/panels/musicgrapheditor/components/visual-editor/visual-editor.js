@@ -10,13 +10,12 @@ import utils from './ve-utils-mixin.js';
 export default {
   template: html`
     <div ref="editor" class="visual-editor" :style="editorStyle" tabindex="0">
-      <!-- <pre style="
-        margin: 2px;
-        background-color: white;
-        max-width: 100%;
-        width: max-content;
-        position: fixed;
-      ">Live instances: {{ liveInstances }}\nRecent events: {{ recentEvents }}</pre> -->
+      <div class="events-per-second" v-if="port">
+        Events per second: {{ eventsPerSecond }}
+        <div v-if="eventsPerSecondWarning">
+          ⚠️ Above reporting threshold, some events may not display.
+        </div>
+      </div>
       <ve-node
         v-for="node of nodes"
         :key="node.id"
@@ -56,9 +55,12 @@ export default {
   data: () => ({
     camera: { x: 0, y: 0 },
     selectRect: null,
+
+    // Debugger stuff
     liveInstances: [],
-    recentEvents: [],
     recentTriggerFires: {}, // node -> array
+    eventsPerSecond: 0,
+    eventsPerSecondWarning: false,
     port: null
   }),
   computed: {
@@ -127,16 +129,25 @@ export default {
       let ax = musicGraph.reduce((acc, node) => acc + node.x, 0) / musicGraph.length;
       let ay = musicGraph.reduce((acc, node) => acc + node.y, 0) / musicGraph.length;
       let { width, height } = this.$refs.editor.getBoundingClientRect();
-
       clipboard.selected.splice(0);
+
+      let idMap = new Map();
       for (let node of musicGraph) {
         if (node.type == 'root') continue;
-        node.id = ++this.$parent.maxId;
+        let newId = ++this.$parent.maxId;
+        idMap.set(node.id, newId);
+        node.id = newId;
         node.x = Math.floor((node.x - ax - this.camera.x + width /2) / 20) * 20;
         node.y = Math.floor((node.y - ay - this.camera.y + height/2) / 20) * 20;
         this.nodes.push(node);
         clipboard.selected.push(node);
       }
+
+      for (let node of musicGraph)
+        for (let trigger of node.triggers)
+          if (idMap.has(trigger.target))
+            trigger.target = idMap.get(trigger.target);
+
       if (musicGraph.length > 0)
         this.$emit('change');
     },
@@ -156,20 +167,15 @@ export default {
       if (msg.type != 'event') return;
       // console.log(msg.type, msg.name, Object.entries(msg.data).map(e => `${e[0]}: ${e[1]}`).join(', '));
       switch (msg.name) {
-        case 'reset': {
-          this.liveInstances = [];
-          this.recentEvents = [];
-          this.recentTriggerFires = {};
+        case 'eventsPerSecond': {
+          this.eventsPerSecond = msg.eventsPerSecond;
+          this.eventsPerSecondWarning = msg.warning;
           break;
         }
 
-        case 'event-dispatched': {
-          this.recentEvents = [
-            ...this.recentEvents
-              .filter(evt => evt.name != msg.data.name)
-              .slice(-25),
-            msg.data
-          ];
+        case 'reset': {
+          this.liveInstances = [];
+          this.recentTriggerFires = {};
           break;
         }
 
@@ -218,6 +224,7 @@ export default {
             this.$set(this.recentTriggerFires, msg.data.sourceId, []);
 
           let recent = this.recentTriggerFires[msg.data.sourceId];
+          if (recent.length > 10) recent.splice(0, 1);
           recent.push({
             instance: msg.data.instanceId,
             trigger: msg.data.trigger,
@@ -263,11 +270,14 @@ export default {
       }
       console.log("Music graph instance connected");
       this.port = port;
-      port.onMessage.addListener(msg => this.onDebugMessage(msg));
+      this.eventsPerSecond = 0;
+      this.eventsPerSecondWarning = false;
+      port.onMessage.addListener(msg => {
+        this.onDebugMessage(msg)
+      });
       port.onDisconnect.addListener(() => {
         console.log("Music graph instance disconnected");
         this.liveInstances = [];
-        this.recentEvents = [];
         this.recentTriggerFires = {};
         this.port = null;
       });

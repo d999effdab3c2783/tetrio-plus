@@ -22,6 +22,40 @@ const app = new Vue({
           </span>
         </div>
         <div class="node-list">
+          <fieldset>
+            <legend>Global configuration <button @click="resetConfig">reset</button></legend>
+            <b>Increasing these can lag your game.</b>
+
+            <div>
+              Active node limit:
+              <input
+                type="number"
+                v-model.number="config.nodeLimit"
+                min="1"
+                @change="saveConfig"
+              />
+            </div>
+
+            <div>
+              Reported event rate limit:
+              <input
+                type="number"
+                v-model.number="config.reportedEventRateLimit"
+                min="1"
+                @change="saveConfig"
+              />/s
+            </div>
+
+            <div>
+              Hard event rate limit:
+              <input
+                type="number"
+                v-model.number="config.hardEventRateLimit"
+                min="1"
+                @change="saveConfig"
+              />/s
+            </div>
+          </fieldset>
           <node-editor
             v-for="node of nodes"
             :key="node.id"
@@ -41,6 +75,11 @@ const app = new Vue({
   `,
   data: {
     history: { undo: [], redo: [] },
+    config: {
+      nodeLimit: 0,
+      reportedEventRateLimit: 0,
+      hardEventRateLimit: 0
+    },
     nodes: [],
     maxId: 0,
     saveOpacity: 0,
@@ -51,6 +90,19 @@ const app = new Vue({
     ...clipboard.computed
   },
   methods: {
+    async resetConfig() {
+      this.config.nodeLimit = 100;
+      this.config.reportedEventRateLimit = 100;
+      this.config.hardEventRateLimit = 100;
+      await this.saveConfig();
+    },
+    async saveConfig() {
+      await browser.storage.local.set({
+        musicGraphNodeLimit: this.config.nodeLimit,
+        musicGraphReportedEventRateLimit: this.config.reportedEventRateLimit,
+        musicGraphHardEventRateLimit: this.config.hardEventRateLimit
+      });
+    },
     pushState() {
       this.history.undo.push(JSON.stringify(this.nodes));
       this.history.redo.splice(0);
@@ -154,11 +206,20 @@ const app = new Vue({
     });
     this.maxId = 0;
 
-    browser.storage.local.get('musicGraph').then(({ musicGraph }) => {
-      // console.log("Loaded", musicGraph);
-      if (!musicGraph) return;
-      this.nodes = JSON.parse(musicGraph);
-      this.maxId = Math.max(...this.nodes.map(node => node.id));
+    browser.storage.local.get([
+      'musicGraph',
+      'musicGraphNodeLimit',
+      'musicGraphReportedEventRateLimit',
+      'musicGraphHardEventRateLimit'
+    ]).then((opt) => {
+      this.config.nodeLimit = opt.musicGraphNodeLimit ?? 100;
+      this.config.reportedEventRateLimit = opt.musicGraphReportedEventRateLimit ?? 250;
+      this.config.hardEventRateLimit = opt.musicGraphHardEventRateLimit ?? 10000;
+      this.saveConfig();
+      if (opt.musicGraph) {
+        this.nodes = JSON.parse(opt.musicGraph);
+        this.maxId = Math.max(...this.nodes.map(node => node.id));
+      }
     }).then(() => {
       this.pushState();
     });

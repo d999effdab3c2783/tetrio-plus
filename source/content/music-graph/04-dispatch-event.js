@@ -37,7 +37,6 @@ musicGraph(graph => {
    * @param value the event's associated value. usage varies by event.
    */
   graph.dispatchEvent = function dispatchEvent(eventName, value) {
-    sendDebugEvent('event-dispatched', { name: eventName, value });
     if (f8menuActive) {
       let str = typeof value == 'number'
         ? `${eventName} (${value})`

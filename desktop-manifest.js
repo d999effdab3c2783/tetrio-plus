@@ -50,6 +50,7 @@ manifest.browser_specific_settings.desktop_client = {
 
     "source/content/music-graph/01-init.js",
     "source/shared/expval.js",
+    "source/content/music-graph/02-debugger-event-stream.js",
     "source/content/music-graph/03-node.js",
     "source/content/music-graph/04-dispatch-event.js",
     "source/content/music-graph/05-game-event-handlers.js",
