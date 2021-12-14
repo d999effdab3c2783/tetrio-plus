@@ -1,5 +1,6 @@
 import { test as sfxTest, load as sfxLoad } from './sfx/encodeFromFiles.js';
 import { test as musicTest, load as musicLoad } from './music.js';
+import genericTextures from './generic-texture.js';
 import { populateImage } from '../shared/filehelper.js';
 import /* non es6 */ '../shared/migrate.js';
 import /* non es6 */ '../shared/tpse-sanitizer.js';
@@ -59,6 +60,12 @@ export default async function automatic(importers, files, storage, options) {
       await window.sanitizeAndLoadTPSE(json, storage);
     }
     return { type: 'tpse' };
+  }
+  for (let [id, { test, load }] of Object.entries(genericTextures)) {
+    if (await test(files)) {
+      (options&&options.log||(()=>{}))("Guessing import type generic/" + id);
+      return await load(files, storage, options);
+    }
   }
   if (files.every(file => /^image/.test(file.type))) {
     (options&&options.log||(()=>{}))("Guessing import type skin");

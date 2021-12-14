@@ -10,6 +10,8 @@ import * as tetrio61connected from './skin/tetrio-6.1-connected.js';
 import * as tetrio61connectedghost from './skin/tetrio-6.1-connected-ghost.js';
 import { loaders, automatic, guessFormat } from './skin/automatic.js';
 
+import genericTexture from './generic-texture.js';
+
 import { decodeDefaults, decodeAudio } from './sfx/decode.js';
 import encode from './sfx/encode.js';
 import * as encodeFromFiles from './sfx/encodeFromFiles.js';
@@ -42,6 +44,7 @@ const importers = {
     encode, // { [string]: Sprite }, storage
     encodeFromFiles: encodeFromFiles.load // file[], storage
   },
+  genericTexture: genericTexture,
   music: null,
   bg: {
     regular: null,
