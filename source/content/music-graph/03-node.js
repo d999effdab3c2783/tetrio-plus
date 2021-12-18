@@ -101,6 +101,7 @@ musicGraph(musicGraph => {
       background.append(...sortedNodes.map(([node, el]) => el));
 
       for (let [node, el] of sortedNodes) {
+        if (el.play) el.play();
         el.style.left = `${node.background.x}vw`;
         el.style.top = `${node.background.y}vh`;
         el.style.width = `${node.background.width}vw`;

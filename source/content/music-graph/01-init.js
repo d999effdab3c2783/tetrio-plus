@@ -83,7 +83,6 @@ function musicGraph(module) {
   });
 
   // cache images so they can appear instantly
-  let cache = [];
   for (let el of Object.values(graph)) {
     if (!el.background) continue;
 
@@ -100,7 +99,6 @@ function musicGraph(module) {
       video.preload = 'auto';
       video.muted = true;
       video.loop = true;
-      video.autoplay = true;
       video.style.width = '100vw';
       video.style.height = '100vh';
       video.style.position = 'fixed';

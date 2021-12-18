@@ -67,51 +67,58 @@ document.getElementById('import').addEventListener('change', async evt => {
 });
 
 document.getElementById('export').addEventListener('click', async evt => {
-  let status = document.createElement('div');
-  status.innerText = 'working on export...';
-  document.body.appendChild(status);
+  try {
+    let status = document.createElement('div');
+    status.innerText = 'working on export...';
+    document.body.appendChild(status);
 
-  let exportKeys = [];
-  let elems = document.getElementsByClassName('export-toggle');
-  for (let elem of elems) {
-    if (elem.checked) {
-      exportKeys.push(...elem.getAttribute('data-export').split(','));
+    let exportKeys = [];
+    let elems = document.getElementsByClassName('export-toggle');
+    for (let elem of elems) {
+      if (elem.checked) {
+        exportKeys.push(...elem.getAttribute('data-export').split(','));
+      }
     }
+
+    let config = await browser.storage.local.get(exportKeys);
+    if (!config.version)
+      throw new Error("Attempted to export, but missing key 'version'?");
+
+    if (config.animatedBackground) {
+      let key = 'background-' + config.animatedBackground.id;
+      Object.assign(config, await browser.storage.local.get(key));
+    }
+
+    if (config.backgrounds) {
+      let bgIds = config.backgrounds.map(({ id }) => 'background-' + id);
+      let bgs = await browser.storage.local.get(bgIds);
+      Object.assign(config, bgs);
+    }
+
+    if (config.music) {
+      let musicIds = config.music.map(({ id }) => 'song-' + id);
+      let songs = await browser.storage.local.get(musicIds);
+      Object.assign(config, songs);
+    }
+
+    console.log("Encoding data...");
+    let json = JSON.stringify(config, null, 2);
+    let blob = new Blob([json], { type: 'application/json' });
+
+    console.log("Offering download...");
+    // https://stackoverflow.com/questions/3665115/18197341#18197341
+    let a = document.createElement('a');
+    a.setAttribute('href', URL.createObjectURL(blob));
+    a.setAttribute('download', 'tetrio-plus-settings-export.tpse');
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    status.remove();
+  } catch(ex) {
+    alert(ex.toString());
+    console.error(ex);
   }
-
-  let config = await browser.storage.local.get(exportKeys);
-
-  if (config.animatedBackground) {
-    let key = 'background-' + config.animatedBackground.id;
-    Object.assign(config, await browser.storage.local.get(key));
-  }
-
-  if (config.backgrounds) {
-    let bgIds = config.backgrounds.map(({ id }) => 'background-' + id);
-    let bgs = await browser.storage.local.get(bgIds);
-    Object.assign(config, bgs);
-  }
-
-  if (config.music) {
-    let musicIds = config.music.map(({ id }) => 'song-' + id);
-    let songs = await browser.storage.local.get(musicIds);
-    Object.assign(config, songs);
-  }
-
-  console.log("Encoding data...");
-  let json = JSON.stringify(config, null, 2);
-  let blob = new Blob([json], { type: 'application/json' });
-
-  console.log("Offering download...");
-  // https://stackoverflow.com/questions/3665115/18197341#18197341
-  let a = document.createElement('a');
-  a.setAttribute('href', URL.createObjectURL(blob));
-  a.setAttribute('download', 'tetrio-plus-settings-export.tpse');
-  a.style.display = 'none';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  status.remove();
 });
 
 document.getElementById('clearData').addEventListener('click', async () => {
