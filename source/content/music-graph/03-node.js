@@ -80,7 +80,7 @@ musicGraph(musicGraph => {
         node.background.currentElement = null;
 
       let sortedNodes = nodes
-        .filter(node => node.source.background)
+        .filter(node => node.source?.background)
         .sort((a, b) => {
           a = a.source.backgroundLayer;
           b = b.source.backgroundLayer;
@@ -123,6 +123,12 @@ musicGraph(musicGraph => {
         sourceId: source.id,
         lastSourceId: this.source?.id || parentSourceId
       });
+      if (source.singleInstance) {
+        if (nodes.some(node => node.source?.id == source.id)) {
+          this.destroy();
+          return;
+        }
+      }
       this.source = source;
       Node.recalculateBackground();
 
@@ -300,7 +306,7 @@ musicGraph(musicGraph => {
       if (!this.destroyed) {
         sendDebugEvent('node-destroyed', {
           instanceId: this.id,
-          sourceId: this.source.id
+          sourceId: this.source?.id
         });
       }
       this.destroyed = true;
@@ -321,6 +327,7 @@ musicGraph(musicGraph => {
     }
 
     runTriggersByName(name, value, audioDelay=0) {
+      if (!this.source) return;
       for (let trigger of this.source.triggers)
         if (trigger.event == name)
           this.runTrigger(trigger, value, audioDelay);
@@ -344,7 +351,7 @@ musicGraph(musicGraph => {
     }
 
     runTrigger(trigger, value, audioDelay=0) {
-      if (this.destroyed) return;
+      if (this.destroyed || !this.source) return;
       try {
         let result = this.testTrigger(trigger, value);
         sendDebugEvent('node-run-trigger', {

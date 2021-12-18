@@ -10,24 +10,8 @@ browser.storage.local.get([ 'music', 'backgrounds' ]).then(res => {
 export default {
   template: html`
     <div class="section" v-if="node.type != 'root'">
-      Select background:
-      <select class="node-audio-selector" v-model="node.background" @change="$emit('change')">
-        <option :value="null">None</option>
-        <option :value="bg.id" v-for="bg of backgrounds">
-          {{ bg.filename }} (ID: {{ bg.id }})
-        </option>
-      </select>
-      <div v-if="backgrounds.length == 0">
-        (Add backgrounds in the main TETR.IO PLUS menu)
-      </div>
-
-      <div>
-        Background layer:
-        <input type="number" v-model.number="node.backgroundLayer" @change="$emit('change')" />
-      </div>
-
-      Select audio:
-      <select class="node-audio-selector" v-model="node.audio" @change="$emit('change')">
+      <label for="audio">Select audio:</label>
+      <select name="audio" class="node-audio-selector" v-model="node.audio" @change="$emit('change')">
         <option :value="null">None</option>
         <option v-for="song of music" :value="song.id">
           {{ song.filename }} (ID: {{ song.id }})
@@ -37,9 +21,11 @@ export default {
         (Add music in the main TETR.IO PLUS menu)
       </div>
 
-      <div v-if="node.audio != null">
-        <div class="form-control">
-          Volume <input
+      <template v-if="node.audio">
+        <div class="form-control" v-if="">
+          <label for="volume">Volume</label>
+          <input
+            name="volume"
             type="range"
             v-model.number="node.effects.volume"
             @change="$emit('change')"
@@ -52,7 +38,9 @@ export default {
           </span>
         </div>
         <div class="form-control">
-          Speed <input
+          <label for="speed">Speed</label>
+          <input
+            name="speed"
             type="number"
             v-model.number="node.effects.speed"
             @change="$emit('change')"
@@ -65,7 +53,9 @@ export default {
           </span>
         </div>
         <div class="form-control">
-          Start position <input
+          <label for="start-position">Start position</label>
+          <input
+            name="start-position"
             type="number"
             v-model.number="node.audioStart"
             @change="$emit('change')"
@@ -73,7 +63,9 @@ export default {
           />s
         </div>
         <div class="form-control">
-          End position <input
+          <label for="end-position">End position</label>
+          <input
+            name="end-position"
             type="number"
             v-model.number="node.audioEnd"
             @change="$emit('change')"
@@ -83,6 +75,42 @@ export default {
             (0 = end of song)
           </span>
         </div>
+      </template>
+
+      <label for="background">Select background:</label>
+      <select
+        name="background"
+        class="node-audio-selector"
+        v-model="node.background"
+        @change="$emit('change')"
+      >
+        <option :value="null">None</option>
+        <option :value="bg.id" v-for="bg of backgrounds">
+          {{ bg.filename }} (ID: {{ bg.id }})
+        </option>
+      </select>
+      <div v-if="backgrounds.length == 0">
+        (Add backgrounds in the main TETR.IO PLUS menu)
+      </div>
+
+      <div v-if="node.background">
+        <label for="background-layer">Background layer:</label>
+        <input
+          name="background-layer"
+          type="number"
+          v-model.number="node.backgroundLayer"
+          @change="$emit('change')"
+        />
+      </div>
+
+      <div>
+        <input
+          name="single-instance"
+          v-model="node.singleInstance"
+          type="checkbox"
+          @change="$emit('change')"
+        />
+        <label for="single-instance">Force single instance (destroys duplicates)</label>
       </div>
     </div>
   `,

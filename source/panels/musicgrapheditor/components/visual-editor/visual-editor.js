@@ -399,9 +399,7 @@ export default {
                   getComputedStyle(handle).getPropertyValue('--size')
                 );
                 let rect = this.editorRect();
-                let border = getComputedStyle(this.$refs.editor)
-                  .borderWidth.split(' ')
-                  .map(px => parseInt(px));
+                let border = [2, 2, 2, 0];
                 let ax1 = node.x + this.camera.x - snapOffset + (rect.x + border[3]);
                 let ay1 = node.y + this.camera.y - snapOffset + (rect.y + border[0]);
                 let ax2 = ax1 + 200
