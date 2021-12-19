@@ -1,5 +1,4 @@
 import OptionToggle from './OptionToggle.js';
-import MultiShow from './MultiShow.js';
 const html = arg => arg.join(''); // NOOP, for editor integration.
 
 export default {
@@ -51,7 +50,7 @@ export default {
     </div>
   `,
   data: () => ({ cache: { music: null } }),
-  components: { OptionToggle, MultiShow },
+  components: { OptionToggle },
   computed: {
     music() {
       browser.storage.local.get('music').then(({ music }) => {
