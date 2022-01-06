@@ -5,6 +5,8 @@ export async function decodeAudio(buffer, status=(()=>{})) {
   if (window.IS_NODEJS_POLYFILLED) {
     let input = new window.ReadableStreamBuffer({
       frequency: 1,
+      // ffmpeg just can't if you change this. No output.
+      // No idea why. This is probably terrible for performance.
       chunkSize: 1024*16
     });
     let output = new window.WritableStreamBuffer({
@@ -12,8 +14,15 @@ export async function decodeAudio(buffer, status=(()=>{})) {
       incrementAmount: buffer.length * 10
     });
     await new Promise((res, rej) => {
-      let proc = window.ffmpeg({ source: input, logger: console })
+      let proc = window.ffmpeg({ source: input })
         .toFormat('wav')
+        // The decoder web-audio-engine uses doesn't like the extensible wav
+        // format, which is triggered by exceeding any of these (16bit 2ch 48kHz)
+        // Probably not amazing for audio quality but we're already re-encoding
+        // (lossy?) ogg so not like it's noticeable
+        .audioFrequency(48000) // -ar 48000
+        .audioChannels(2) // -ac 2
+        .audioCodec('pcm_s16le') // -acodec pcm_s16le
         .on('stderr', line => status('FFMPEG>' + line))
         .on('end', () => {
           status('ffmpeg done');
