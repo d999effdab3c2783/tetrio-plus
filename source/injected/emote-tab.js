@@ -32,16 +32,15 @@
     el.classList.add('emote');
     el.classList.toggle('disallowed', !allowed);
     el.setAttribute('data-emote', name);
+    el.title = `:${name}:`;
+    el.alt = `:${name}:`;
 
     if (allowed) {
-      el.addEventListener('click', () => {
-        let input = picker.parentElement.id == 'room_chat'
+      el.addEventListener('click', (evt) => {
+        let chatInput = picker.parentElement.id == 'room_chat'
           ? document.getElementById('chat_input')
           : document.getElementById('ingame_chat_input');
-        let pre = input.value.slice(0, input.selectionStart+1);
-        let post = input.value.slice(input.selectionStart);
-        input.value = pre.replace(/:[^:]*$/, `:${name}:`) + post;
-        picker.remove();
+        autocomplete(name, evt.shiftKey, chatInput, picker.parentElement);
       });
     }
 
@@ -59,39 +58,14 @@
     picker.appendChild(el);
   }
 
-  function updateEmotes(input, anchor) {
-    let sliced = input.value.slice(0, input.selectionStart+1);
-    let emote = /(?::[^:]+)?:([^:]*)$/.exec(sliced)?.[1];
-    if (emote === undefined) {
-      picker.remove();
-      return;
-    }
-    anchor.appendChild(picker);
-
-    let count = 0;
-    let activeSet = false;
-    for (let img of picker.children) {
-      let match = img.getAttribute('data-emote').startsWith(emote);
-      img.classList.toggle('match', match);
-      if (match) count++;
-      if (!activeSet && match && !img.classList.contains('disallowed')) {
-        img.classList.add('active');
-        activeSet = true;
-      } else {
-        img.classList.remove('active');
-      }
-    }
-    picker.classList.toggle('list', count <= 17); // 17 = # of ranks
-  }
-
   let elements = [
     ['chat_input', 'room_chat'],
     ['ingame_chat_input', 'ingame_chat']
   ].map(list => list.map(id => document.getElementById(id)));
 
-  for (let [input, messages] of elements) {
-    input.addEventListener('input', () => updateEmotes(input, messages));
-    input.addEventListener('keydown', (evt) => {
+  for (let [chatInput, chatHistory] of elements) {
+    chatInput.addEventListener('input', () => updateEmotes(chatInput, chatHistory));
+    chatInput.addEventListener('keydown', (evt) => {
       if (!picker.isConnected) return;
       let pickable = [...picker.querySelectorAll('.match:not(.disallowed)')];
       let currentPick = picker.querySelector('.match.active') || pickable[0];
@@ -106,10 +80,53 @@
       }
       if (evt.key == 'Enter') {
         if (!currentPick) return;
-        currentPick.click();
+        let name = currentPick.getAttribute('data-emote');
+        autocomplete(name, evt.shiftKey, chatInput, chatHistory);
         evt.stopImmediatePropagation();
         evt.preventDefault();
       }
     })
+  }
+
+  function autocomplete(name, shiftKey, chatInput, chatHistory) {
+    let pre = chatInput.value.slice(0, chatInput.selectionStart+1);
+    let post = chatInput.value.slice(chatInput.selectionStart);
+    let completed = `:${name}:`;
+    // start another emote, reusing last one as prefix to maintain list
+    if (shiftKey) completed += `:$1`;
+    chatInput.value = pre.replace(/:([^:]*)$/, completed) + post;
+    chatInput.scrollLeft = chatInput.scrollWidth
+    updateEmotes(chatInput, chatHistory);
+  }
+
+  function updateEmotes(input, anchor) {
+    let sliced = input.value.slice(0, input.selectionStart+1);
+
+    let match = /(?::[^:]+)?:([^:]*)$/.exec(sliced);
+    if (match == null) {
+      picker.remove();
+      return;
+    }
+
+    let [fullMatch, partialEmote] = match;
+    if (fullMatch != ':' && partialEmote == "") {
+      picker.remove();
+      return;
+    }
+
+    anchor.appendChild(picker);
+
+    let count = 0;
+    for (let img of picker.children) {
+      let match = img.getAttribute('data-emote').startsWith(partialEmote);
+      if (!match) img.classList.remove('active');
+      img.classList.toggle('match', match);
+      if (match) count++;
+    }
+
+    if (!picker.querySelector('.match:not(.disallowed).active')) {
+      picker.querySelector('.match:not(.disallowed)').classList.add('active');
+    }
+    picker.classList.toggle('list', count <= 17); // 17 = # of ranks
   }
 })()
