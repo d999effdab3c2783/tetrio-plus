@@ -16,7 +16,10 @@ createRewriteFilter("Tetrio.js Music", "https://tetr.io/js/tetrio.js*", {
     // so strip all special characters to make it safe
     for (let song of songs)
       for (let key of ['name', 'jpname', 'artist', 'jpartist'])
-        song.metadata[key] = song.metadata[key].replace(/[^A-Za-z ]/g, '')
+        song.metadata[key] = song.metadata[key].replace(
+        /[^一-龠ぁ-ゔァ-ヴーa-zA-Z0-9ａ-ｚＡ-Ｚ０-９々〆〤ヶ ]/gu,
+        ''
+      );
 
     let newSongObject = {};
     for (let song of songs) {
