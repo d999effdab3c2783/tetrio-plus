@@ -1,17 +1,12 @@
 /* Added by Jabster28 | MIT Licensed */
 /* Modified by UniQMG */
 (async () => {
-  let user = localStorage.userID
-    ? (await (await fetch(`/api/users/${localStorage.userID}`, {
-        headers: new Headers({
-          Authorization: 'Bearer ' + localStorage.userToken,
-        }),
-      })).json()).user
-    : { supporter: false, verified: false, staff: false };
-
-  while (!window.emoteMap)
+  // Injected @ filters/emote-tab-tetriojs-filter.js, content/emote-tab.js
+  while (!window.emoteMap && !localStorage.chTetrioUser)
     await new Promise(res => setTimeout(res, 100));
 
+  const user = JSON.parse(localStorage.chTetrioUser);
+  console.log("Emote tab fetched allowed emotes", user);
   const emotes = window.emoteMap;
   const emoteList = [];
 
@@ -124,9 +119,8 @@
       if (match) count++;
     }
 
-    if (!picker.querySelector('.match:not(.disallowed).active')) {
-      picker.querySelector('.match:not(.disallowed)').classList.add('active');
-    }
+    if (!picker.querySelector('.match:not(.disallowed).active'))
+      picker.querySelector('.match:not(.disallowed)')?.classList?.add?.('active');
     picker.classList.toggle('list', count <= 17); // 17 = # of ranks
   }
 })()
