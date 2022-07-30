@@ -397,6 +397,21 @@ app.whenReady().then(async () => {
             let joined = typeof raw[0] == 'string'
               ? raw.join('')
               : Buffer.concat(raw);
+            if (originalUrl.includes('tetrio.js') && joined.includes("Please verify you're not a bot")) {
+              joined = (`alert("` +
+                `TETR.IO PLUS error:` +
+                `\\nCloudflare is serving a CAPTCHA in place of tetrio.js. ` +
+                `This usually occurs if TETR.IO is being DDoSed or has cloudflare ` +
+                `protection turned up for some reason. TETR.IO PLUS cannot operate ` +
+                `if this happens. This is usually a temporary situation, but please ` +
+                `disable TETR.IO PLUS for now. You can also try using the Firefox ` +
+                `version, which is usually less prone to this issue.` +
+                `\\nDo NOT report issues to TETR.IO or osk under any circumstances ` +
+                `while TETR.IO PLUS is installed. Additionally, please consider ` +
+                `waiting before reporting this issue to TETR.IO PLUS/UniQMG ` +
+                `as it's usually a temporary situation out of their control.` +
+              `")`);
+            }
             resolve(joined);
           });
         }));
