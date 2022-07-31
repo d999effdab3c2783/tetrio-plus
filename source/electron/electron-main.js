@@ -371,6 +371,7 @@ app.whenReady().then(async () => {
       );
       // query params break some stuffs (why? what stuff?)
       const url = originalUrl.split('?')[0];
+      redlog(`Headers`, req.headers);
 
       const bypassed = null != new URL(originalUrl)
         .searchParams.get('bypass-tetrio-plus');
@@ -382,39 +383,38 @@ app.whenReady().then(async () => {
       // if data isn't already provided internally.
       async function fetchData() {
         greenlog("Fetching data", originalUrl);
-        data = await new Promise(resolve => https.get(originalUrl, response => {
-          contentType = response.headers['content-type'];
-          greenlog("http response ", contentType);
-          let raw = [];
+        data = await new Promise(resolve => {
+          https.get(originalUrl, { headers: req.headers }, response => {
+            contentType = response.headers['content-type'];
+            greenlog("http response ", contentType);
+            let raw = [];
 
-          if (/^(image|audio)/.test(contentType)) {
-            // No encoding
-          } else {
-            response.setEncoding('utf8');
-          }
-          response.on('data', chunk => raw.push(chunk))
-          response.on('end', () => {
-            let joined = typeof raw[0] == 'string'
-              ? raw.join('')
-              : Buffer.concat(raw);
-            if (originalUrl.includes('tetrio.js') && joined.includes("Please verify you're not a bot")) {
-              joined = (`alert("` +
-                `TETR.IO PLUS error:` +
-                `\\nCloudflare is serving a CAPTCHA in place of tetrio.js. ` +
-                `This usually occurs if TETR.IO is being DDoSed or has cloudflare ` +
-                `protection turned up for some reason. TETR.IO PLUS cannot operate ` +
-                `if this happens. This is usually a temporary situation, but please ` +
-                `disable TETR.IO PLUS for now. You can also try using the Firefox ` +
-                `version, which is usually less prone to this issue.` +
-                `\\nDo NOT report issues to TETR.IO or osk under any circumstances ` +
-                `while TETR.IO PLUS is installed. Additionally, please consider ` +
-                `waiting before reporting this issue to TETR.IO PLUS/UniQMG ` +
-                `as it's usually a temporary situation out of their control.` +
-              `")`);
-            }
-            resolve(joined);
-          });
-        }));
+            let utf8 = !/^(image|audio)/.test(contentType);
+            if (utf8) response.setEncoding('utf8');
+
+            response.on('data', chunk => raw.push(chunk))
+            response.on('end', async () => {
+              let cloudflare = (
+                contentType.startsWith('text/html') &&
+                originalUrl.includes('tetrio.js') &&
+                joined.includes("Please verify you're not a bot")
+              );
+              if (cloudflare) {
+                redlog(`Cloudflare: Fetching`, originalUrl, `via ipc...`);
+                let file = `/js/tetrio.js?bypass-tetrio-plus`;
+                (await mainWindow).webContents.send('renderspace-fetch-file', file, utf8 ? 'text' : 'arrayBuffer');
+                ipcMain.once(`renderspace-fetch-file-result-${file}`, (_evt, filecontents) => {
+                  resolve(filecontents);
+                });
+              } else {
+                let joined = typeof raw[0] == 'string'
+                  ? raw.join('')
+                  : Buffer.concat(raw);
+                resolve(joined);
+              }
+            });
+          })
+        });
         greenlog("Fetched", data.slice(0, 100));
       }
 

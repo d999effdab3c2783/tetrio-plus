@@ -13,6 +13,11 @@ function matchesGlob(glob, string) {
 mainWindow.webContents.session.webRequest.onBeforeRequest(
   { urls: ['https://tetr.io/*', '*://*.adinplay.com/*', '*://adinplay.com/*'] },
   (request, callback) => {
+    if (new URL(request.url).searchParams.get('bypass-tetrio-plus') != null) {
+      greenlog(`[prefilter] Ignoring bypassed ${request.url}`);
+      callback({});
+      return;
+    }
     (async () => {
       // greenlog("Request origin URL", request);
 
@@ -21,7 +26,7 @@ mainWindow.webContents.session.webRequest.onBeforeRequest(
 
       let { tetrioPlusEnabled } = await dataSource.get('tetrioPlusEnabled');
       if (!tetrioPlusEnabled) {
-        console.log(`[${name} filter] Tetrio plus disabled, ignoring ${url}`);
+        greenlog(`[prefilter] TETR.IO PLUS disabled, ignoring ${url}`);
         return;
       }
 

@@ -17,8 +17,19 @@
     this.addEventListenerBase(type, listener, arg);
   }
 
-  document.addEventListener('keydown', evt => {
+  ipcRenderer.on('renderspace-fetch-file', async (_evt, url, mode) => {
+    console.log(`TETR.IO PLUS: Fetching file from renderspace:`, url);
+    let result = await fetch(url).then(res => {
+      switch (mode) {
+        case 'text': return res.text();
+        case 'arrayBuffer': return res.arrayBuffer();
+        default: return res.text();
+      }
+    });
+    ipcRenderer.send(`renderspace-fetch-file-result-${url}`, result);
+  });
 
+  document.addEventListener('keydown', evt => {
     if (evt.altKey && evt.key == 'F4') {
       ipcRenderer.send('tetrio-plus-cmd', 'destroy everything');
       evt.preventDefault();
