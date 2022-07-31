@@ -76,7 +76,7 @@ let app = new Vue({
   },
   computed: {
     sizeWarning() {
-      return this.winterCompatEnabled
+      return this.key == 'board' && this.winterCompatEnabled
         ? this.moddedSize != '1024x1024'
         : this.moddedSize != this.vanillaSize;
     },
