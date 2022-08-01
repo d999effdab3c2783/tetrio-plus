@@ -369,9 +369,8 @@ app.whenReady().then(async () => {
       const originalUrl = 'https://tetr.io/' + req.url.substring(
         'tetrio-plus://tetrio-plus/'.length
       );
-      // query params break some stuffs (why? what stuff?)
+      // query params break some stuffs (why? what stuff?) ((possibly some filters not expecting url parameters?))
       const url = originalUrl.split('?')[0];
-      redlog(`Headers`, req.headers);
 
       const bypassed = null != new URL(originalUrl)
         .searchParams.get('bypass-tetrio-plus');
@@ -403,7 +402,9 @@ app.whenReady().then(async () => {
               );
               if (cloudflare) {
                 redlog(`Cloudflare: Fetching`, originalUrl, `via ipc...`);
-                let file = new URL(originalUrl).pathname + '?bypass-tetrio-plus';
+                let url = new URL(originalUrl);
+                url.searchParams.set('bypass-tetrio-plus', true);
+                let file = url.pathname + url.search;
                 (await mainWindow).webContents.send('renderspace-fetch-file', file);
                 ipcMain.once(
                   `renderspace-fetch-file-result-${file}`,
