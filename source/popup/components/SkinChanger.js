@@ -42,6 +42,9 @@ export default {
           Force nearest-neighbor scaling
         </span>
       </option-toggle>
+      <option-toggle storageKey="winterCompatEnabled">
+        Enable winter event compatibility patch.
+      </option-toggle>
     </div>
   `,
   components: { OptionToggle },

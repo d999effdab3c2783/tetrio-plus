@@ -49,8 +49,18 @@
   `;
   createRewriteFilter("Winter compat", "https://tetr.io/js/tetrio.js*", {
     enabledFor: async (storage, request) => {
-      let res = await storage.get('winterCompatEnabled');
-      return res.winterCompatEnabled;
+      let { winterCompatEnabled, board } = await storage.get([
+        'winterCompatEnabled',
+        'board'
+      ]);
+      let img = new Image();
+      await new Promise(res => {
+        img.onload = res;
+        img.onerror = res;
+        img.src = board;
+      });
+      console.log("[Winter compat filter] Image size", img.width, img.height);
+      return winterCompatEnabled && img.width >= 1024 && img.height >= 1024;
     },
     onStop: async (storage, url, src, callback) => {
       try {

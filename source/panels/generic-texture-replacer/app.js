@@ -54,7 +54,7 @@ let app = new Vue({
         <option-toggle storageKey="winterCompatEnabled" @changed="setWinterCompatEnabled">
           Enable
           <a href="#" @click="openWinterCompatWiki">winter event compatibility</a>
-          patch. This requires a 1024x1024 texture.
+          patch. This requires at least a 1024x1024 texture.
         </option-toggle>
       </div>
     </div>
