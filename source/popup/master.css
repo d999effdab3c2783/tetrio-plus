@@ -61,15 +61,14 @@ h1 .version {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  width: 365.8px;
 }
 
 img.skin, .no-skin {
   margin-top: 2px;
   border: 2px solid var(--text);
 
-  max-width: 90vw;
   line-height: 30px;
+  width: calc(100% - 4px);
 
   background-size: calc(100%/6) 100%;
   background-image: linear-gradient(
