@@ -154,6 +154,10 @@ import readfiles from '../../shared/filehelper.js';
       alert(`Import failed: ${ex}!\n\nImport logs:\n${logs.join('\n')}`);
       status.innerText = "Import failed";
       console.error(ex);
+    } finally {
+      // reset the handler
+      evt.target.type = '';
+      evt.target.type = 'file';
     }
   });
 
@@ -281,6 +285,10 @@ import readfiles from '../../shared/filehelper.js';
   oaiw.href = 'https://gitlab.com/UniQMG/tetrio-plus/-/wikis/automatic-imports';
   oaiw.addEventListener('click', evt => {
     evt.preventDefault();
-    window.open('https://gitlab.com/UniQMG/tetrio-plus/-/wikis/automatic-imports');
+    if (window.openInBrowser) { // electron
+      window.openInBrowser('https://gitlab.com/UniQMG/tetrio-plus/-/wikis/automatic-imports');
+    } else {
+      window.open('https://gitlab.com/UniQMG/tetrio-plus/-/wikis/automatic-imports');
+    }
   });
 })();
