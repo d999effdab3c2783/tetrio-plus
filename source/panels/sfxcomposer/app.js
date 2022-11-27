@@ -227,6 +227,7 @@ const app = new Vue({
         sprite.buffer = sfxBuffer;
         sprite.duration = sprite.buffer.duration;
         sprite.offset = -1;
+        sprite.source = 'modified';
 
         replaced.push(`Success: ${file.name} -> ${spriteName}`)
       }
