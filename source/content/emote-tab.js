@@ -13,8 +13,8 @@
     .then(r => r.json())
     .then(d => ({
       verified: d.data.user.verified,
-      staff: d.data.user.role == 'staff',
-      supporter: d.data.user.supporter_tier > 0
+      staff: d.data.user.role == 'admin' || d.data.user.role == 'mod',
+      supporter: d.data.user.supporter
     }))
     .catch(ex => {
       console.warn('Failed to fetch usable emotes', ex);

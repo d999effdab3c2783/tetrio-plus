@@ -6,18 +6,14 @@
     await new Promise(res => setTimeout(res, 100));
 
   const user = JSON.parse(localStorage.chTetrioUser);
-  console.log("Emote tab fetched allowed emotes", user);
   const emotes = window.emoteMap;
   const emoteList = [];
 
-  function add(emotes, allowed) {
-    for (let key of Object.keys(emotes))
-      emoteList.push({ name: key, url: emotes[key], allowed });
-  }
-  add(emotes.base, true);
-  add(emotes.supporter, user.supporter);
-  add(emotes.verified, user.verified);
-  add(emotes.staff, user.role == 'admin');
+  let accesslevels = { 1: true, 2: user.supporter, 3: user.verified, 4: user.staff };
+  console.log("Emote tab: access levels:", accesslevels);
+  for (let { id, type, src, access } of Object.values(emotes))
+    if (!emoteList.some(emote => emote.name == id))
+      emoteList.push({ name: id, url: src + type, allowed: accesslevels[access] });
 
   const picker = document.createElement('div');
   picker.classList.add('tetrioplus-emote-picker');
@@ -40,7 +36,7 @@
     }
 
     let img = document.createElement('img');
-    img.src = '/res/' + url;
+    img.src = url;
     el.appendChild(img);
 
     let label = document.createElement('span');
