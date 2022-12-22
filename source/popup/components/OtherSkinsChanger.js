@@ -18,7 +18,7 @@ export default {
           </span>
         </div>
         <option-toggle storageKey="winterCompatEnabled">
-          Enable winter event compatibility patch
+          Enable winter 2021 event board skin format compatibility patch
         </option-toggle>
       </div>
     </div>
