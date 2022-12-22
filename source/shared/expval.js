@@ -81,10 +81,14 @@ class ExpVal {
         }
       }
       if (token.type == 'operator') {
-        let hasGreater = operators.some(op => precedence[op.value] >= precedence[token.value]);
-        let hasParan = !operators.every(op => op.value != '(');
-        if (hasGreater && !hasParan)
-          while (operators.length)
+        let paranGroupStart = operators.findLastIndex(op => op.value == '(');
+        // note: index is -1 if there are no paranthesis, thus slicing from 0 is correct
+        // otherwise, add 1 to exclude the actual paranthetical operator.
+        let hasGreater = operators
+          .slice(paranGroupStart + 1)
+          .some(op => precedence[op.value] >= precedence[token.value]);
+        if (hasGreater)
+          while (operators.length > paranGroupStart+1)
             out.push(operators.pop());
         operators.push(token);
       }
@@ -166,9 +170,22 @@ class ExpVal {
   }
 }
 
-// let exp = "counter + 1";
-// let expval = new ExpVal(exp);
-// console.log(exp, '=', expval.evaluate({ counter: 1 }));
+function assert(expr, expected, variables={}, functions={}) {
+  let result = new ExpVal(expr).evaluate(variables, functions);
+  if (result != expected)
+    console.error(`ExpVal test case fail: ${expr} -> ${result}, expected ${expected}`);
+}
+assert('2+2', 4);
+assert('two+2', 4, { two: 2 });
+assert('(two+2)==4', 1, { two: 2 });
+assert('(((two+2)==4))==0', 0, { two: 2 });
+assert('test(1)', 2, {}, { test: x => x+1 });
+assert('(left%10)==1', 1, { left: 1 });
+assert('(left%10==1)', 0, { left: 2 });
+assert('1 == 2', 0);
+assert('if((((two+2)==4))==1, 3, 1)', 3, { two: 2 }, { if: (a, b, c) => a ? b : c });
+assert('if((((two+2)==4))==0, 3, 1)', 1, { two: 2 }, { if: (a, b, c) => a ? b : c });
+
 
 if (typeof musicGraph != 'undefined') musicGraph(graph => graph.ExpVal = ExpVal);
 if (typeof module != 'undefined' && module.exports) module.exports.ExpVal = ExpVal;
