@@ -3,7 +3,7 @@
 set -e
 npm i -g asar
 
-wget -N https://tetr.io/about/desktop/builds/TETR.IO%20Setup.exe
+wget -q -N https://tetr.io/about/desktop/builds/TETR.IO%20Setup.exe
 7z e ./TETR.IO\ Setup.exe "\$PLUGINSDIR/app-64.7z" -y
 7z e app-64.7z "resources/app.asar" -y
 
@@ -16,6 +16,9 @@ cd ..
 mkdir -p out/tetrioplus
 git archive HEAD | tar -x -C out/tetrioplus
 cp app.asar out/app.asar.vanilla
+
+# note: bit of a hack, assumes we're being called from build.sh after doing the tpsecore build
+cp source/lib/tpsecore_bg.wasm source/lib/tpsecore.js out/tetrioplus/source/lib
 
 # cleanup
 rm TETR.IO\ Setup.exe app-64.7z app.asar
