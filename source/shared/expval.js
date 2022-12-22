@@ -81,7 +81,16 @@ class ExpVal {
         }
       }
       if (token.type == 'operator') {
-        let paranGroupStart = operators.findLastIndex(op => op.value == '(');
+        // note: tetrio desktop uses an old chromium version that doesn't support this api yet,
+        // so here's a manual implementation
+        function findLastIndex(array, predicate) {
+          for (let i = array.length-1; i >= 0; i--)
+            if (predicate(array[i]))
+              return i;
+          return -1;
+        }
+
+        let paranGroupStart = findLastIndex(operators, op => op.value == '(');
         // note: index is -1 if there are no paranthesis, thus slicing from 0 is correct
         // otherwise, add 1 to exclude the actual paranthetical operator.
         let hasGreater = operators
