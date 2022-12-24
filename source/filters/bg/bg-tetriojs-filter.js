@@ -52,9 +52,9 @@ createRewriteFilter("Tetrio.js BG", "https://tetr.io/js/tetrio.js*", {
       backgrounds.push(...res.backgrounds)
     }
 
-    let replaced = false;
+    let replaced = 0;
     src = src.replace(
-      /(let \w+=)(\[["']\.\.\/res\/bg.+?\])/,
+      /(\w+=)(\[["']\.\.\/res\/bg.+?\])/g,
       (fullmatch, varInit, value) => {
         let rewrite = varInit + b64Recode(backgrounds.filter(bg => {
           return bg.type == 'image';
@@ -65,14 +65,14 @@ createRewriteFilter("Tetrio.js BG", "https://tetr.io/js/tetrio.js*", {
         //   "Rewriting backgrounds definition",
         //   { from: fullmatch, to: rewrite }
         // );
-        replaced = true;
+        replaced++;
         return rewrite;
       }
     );
 
-    if (!replaced) console.error(
-      "Custom background rewrite failed. " +
-      "Please update your plugin. "
+    if (replaced != 1) console.error(
+      `Custom background rewrite matched ${replaced} times, but only expected 1. ` +
+      `(or 2 in case of the holiday event. You can ignore this error if it was 2 and that's still going on)`
     );
 
     callback({
