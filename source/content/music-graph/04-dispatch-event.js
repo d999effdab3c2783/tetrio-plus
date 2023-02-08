@@ -4,6 +4,7 @@ musicGraph(graph => {
     nodes,
     cleanup,
     sendDebugEvent,
+    globalVariables,
     ExpVal
   } = graph;
   let recentEvents = [];
@@ -25,6 +26,7 @@ musicGraph(graph => {
       div.innerText = [
         'TETR.IO PLUS music graph debug',
         'Recent events: ' + [...recentEvents].reverse().join(', '),
+        'Global variables: ' + Object.entries(globalVariables).map(([key, value]) => `${key}: ${value}`).join(', '),
         ...nodes.map(node => node.toString())
       ].join('\n');
     }, 100);

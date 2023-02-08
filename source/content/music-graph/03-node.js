@@ -1,6 +1,7 @@
 musicGraph(musicGraph => {
   const {
     nodes,
+    globalVariables,
     audioContext: context,
     imageCache,
     sendDebugEvent,
@@ -249,9 +250,9 @@ musicGraph(musicGraph => {
       return Math.min(Math.max(val, lower), upper);
     }
 
-    get computedVariables() {
+    computedVariables(extra) {
       let node = this;
-      return {
+      let computed = {
         get $volume() {
           return node.volume
         },
@@ -305,7 +306,31 @@ musicGraph(musicGraph => {
           video.currentTime = Node._constrain(val, 0, video.duration || Infinity);
           video.pause();
         }
-      }
+      };
+      return new Proxy({}, {
+        get(_, prop) {
+          if (prop.startsWith('#'))
+            return globalVariables[prop];
+          if (prop in extra)
+            return extra[prop];
+          if (prop in computed)
+            return computed[prop];
+          return node.variables[prop];
+        },
+        set(_, prop, value) {
+          if (prop.startsWith('#')) {
+            globalVariables[prop] = value;
+          } else if (prop in extra) {
+            // extra is currently only used for `$`, which is effectively write-only
+            // drop it for now
+          } else if (prop in computed) {
+            computed[prop] = value;
+          } else {
+            node.variables[prop] = value;
+          }
+          return true;
+        }
+      });
     }
 
     destroy() {
@@ -342,11 +367,8 @@ musicGraph(musicGraph => {
     testTrigger(trigger, value) {
       if (trigger.predicateExpression.trim().length > 0) {
         try {
-          let expValue = ExpVal.get(trigger.predicateExpression).evaluate({
-            ...this.variables,
-            ...this.computedVariables,
-            $: value || 0
-          });
+          let context = this.computedVariables({ $: value || 0 });
+          let expValue = ExpVal.get(trigger.predicateExpression).evaluate(context);
           if (!expValue) return false;
         } catch(ex) {
           console.warn(`[TETR.IO PLUS] Music graph: error evaluating predicate ${trigger.predicateExpression}`, ex);
@@ -423,33 +445,21 @@ musicGraph(musicGraph => {
           }
           case 'dispatch': {
             let val = trigger.dispatchExpression.trim().length > 0
-              ? ExpVal.get(trigger.dispatchExpression).evaluate({
-                  ...this.variables,
-                  ...this.computedVariables,
-                  $: value || 0
-                })
+              ? ExpVal.get(trigger.dispatchExpression).evaluate(this.computedVariables({ $: value || 0 }))
               : null;
             musicGraph.dispatchEvent(trigger.dispatchEvent, val);
             break;
           }
           case 'set': {
-            let val = ExpVal.get(trigger.setExpression).evaluate({
-              ...this.variables,
-              ...this.computedVariables,
-              $: value || 0
+            let computed = this.computedVariables({ $: value || 0 });
+            let val = ExpVal.get(trigger.setExpression).evaluate(computed);
+            computed[trigger.setVariable] = val;
+            sendDebugEvent('node-set-variable', {
+              instanceId: this.id,
+              sourceId: this.source.id,
+              variable: trigger.setVariable,
+              value: val
             });
-            let computed = this.computedVariables;
-            if (typeof computed[trigger.setVariable] !== 'undefined') {
-              computed[trigger.setVariable] = val;
-            } else {
-              this.variables[trigger.setVariable] = val;
-              sendDebugEvent('node-set-variable', {
-                instanceId: this.id,
-                sourceId: this.source.id,
-                variable: trigger.setVariable,
-                value: val
-              });
-            }
             break;
           }
         }

@@ -65,6 +65,7 @@ function musicGraph(module) {
 
   const musicGraphData = {
     initializeMusicGraph,
+    globalVariables: {},
     nodes: [],
     cleanup: [],
     audioContext,

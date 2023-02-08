@@ -12,7 +12,7 @@ class ExpVal {
       leftparan: /^\(/,
       rightparan: /^\)/,
       function: /^[A-Za-z]+\(/,
-      variable: /^[A-Za-z$]\w*/,
+      variable: /^[A-Za-z$#]\w*/,
       comma: /^,/
     };
     const precedence = {
