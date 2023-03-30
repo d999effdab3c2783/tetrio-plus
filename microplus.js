@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Microplus Toolkit for TETR.IO
 // @namespace    https://gitlab.com/UniQMG/tetrio-plus
-// @version      0.1.1
+// @version      0.2.0
 // @description  Some functionality of TETR.IO PLUS reimplemented as a userscript
 // @author       UniQMG
 // @match        https://tetr.io
@@ -46,7 +46,7 @@
   z-index: 10000000; /* yes, this is the actual exact minimum required. 9999999 is covered by the global stats. */
   position: fixed;
   right: 0px;
-  width: 680px;
+  width: 655px;
   max-width: 60vw;
   max-height: 60vh;
   overflow: auto;
@@ -128,12 +128,14 @@
 
   <button style="margin-top: 4px; margin-left: 2px;" onclick="document.querySelector('.microplus-toolkit-menu').style.display = 'none'">Close</button>
   <div style="color: red">
-    Microplus Toolkit supports only skins, sound effects, and music. Animated skins, backgrounds, the music graph,
-    and other TETR.IO PLUS features are not supported and most will probably never be supported.
+    Microplus Toolkit supports only skins, sound effects, music, and custom backgrounds. See wiki page for more details.
   </div>
 </div>
 <marquee scrollamount="15">Do not report issues to TETR.IO or osk during use.</marquee>
   `;
+
+  const particles = ["particle_beam", "particle_beams_beam", "particle_bigbox", "particle_box", "particle_chip", "particle_chirp", "particle_dust", "particle_fbox", "particle_fire", "particle_particle", "particle_smoke", "particle_star", "particle_flake"];
+  const customBackgroundsEnabled = tpse.backgrounds?.length > 0;
 
   waitUntil(() => document.body, () => {
     document.body.appendChild(mpMenu);
@@ -161,9 +163,10 @@
         }
 
         let invalidProps = new Set(Object.keys(json));
+        let songAndBgProps = [...invalidProps].filter(prop => prop.startsWith('song-') || prop.startsWith('background-'));
         let validProps = [
-          'version', 'skin', 'ghost', 'customSoundAtlas', 'customSounds', 'music',
-          ...[...invalidProps].filter(prop => prop.startsWith('song-'))
+          'version', 'skin', 'ghost', 'customSoundAtlas', 'customSounds', 'music', 'backgrounds', ...songAndBgProps,
+          'board', 'queue', 'grid', ...particles, 'opaqueTransparentBackground', 'forceNearestScaling'
         ];
         for (let validProp of validProps)
           invalidProps.delete(validProp);
@@ -206,42 +209,141 @@
       console.log(mp, "Calling DEVHOOK_CONNECTED_SKIN()");
       unsafeWindow.DEVHOOK_CONNECTED_SKIN();
     });
-
-    // Discover calls to `new Image()` to watch and rewrite the src property
-    let nativeImage = unsafeWindow.Image;
-    unsafeWindow.Image = new Proxy(nativeImage, {
-      construct(target, args) {
-        let val = new target(...args);
-        console.debug(mp, "New image created, waiting for first src assignment...");
-        waitUntil(() => val.src != "", async () => {
-          console.debug(mp, "First source assignment", val.src);
-
-          // intentionally use no anchors - skins may have query parameters and will have a tetrio domain prefix
-          let skinURL = /\/res\/skins\/(minos|ghost)\/connected(\.2x)?\.png/.exec(val.src);
-          if (skinURL) {
-            console.log(mp, "Redirecting request to", val.src);
-            let sourceTex = skinURL[1] == 'minos' ? tpse.skin : tpse.ghost;
-            if (skinURL[2] != '.2x') {
-              // downscale to 1x texture
-              let image = new Image();
-              image.src = sourceTex;
-              await new Promise(res => { image.onload = res; });
-              let canvas = document.createElement('canvas');
-              canvas.width = 1024;
-              canvas.height = 1024;
-              canvas.getContext('2d').drawImage(image, 0, 0, 1024, 1024);
-              sourceTex = canvas.toDataURL('image/png');
-            }
-            val.src = sourceTex;
-          }
-        });
-        return val;
-      }
-    });
   } else {
     console.log(mp, "TPSE lacks mino or ghost skin");
   }
 
+  let pixi = unsafeWindow.PIXI; // this shouldn't be present yet, but if microplus late-loaded then it'll be populated here
+  if (pixi) setupPixiProxy();
+  function setupPixiProxy() {
+    if (tpse.forceNearestScaling) { // todo: test
+      pixi.SCALE_MODES.LINEAR = pixi.SCALE_MODES.NEAREST;
+    }
+    if (customBackgroundsEnabled) {
+      pixi.Application = new Proxy(pixi.Application, {
+        construct(target, args) {
+          console.log(mp, "Enabling transparent background with pixi constructor args", args);
+          args[0].transparent = true;
+          return new target(...args);
+        }
+      });
+    }
+  }
+  Object.defineProperty(unsafeWindow, 'PIXI', {
+    get() { return pixi; },
+    set(val) { pixi = val; setupPixiProxy(); }
+  });
+
+  let refreshBackground = () => {}; // noop placeholder
+  if (customBackgroundsEnabled) {
+    waitUntil(() => document.getElementById('pixi'), () => {
+      // todo: copypasted from the tetrioplus music graph impl, is this necessary?
+      let gameCanvas = document.getElementById('pixi');
+      gameCanvas.style.backgroundPosition = 'center';
+      gameCanvas.style.backgroundSize = 'cover';
+    });
+
+    let container = document.createElement('div');
+    container.id = 'microplus-custom-background-container';
+    container.innerHTML = `
+<style>
+  #microplus-custom-background-container > .microplus-custom-background {
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    object-fit: cover;
+    z-index: -1;
+  }
+</style>
+    `;
+    document.body.appendChild(container);
+
+    const key = 'microplus-custom-background';
+    refreshBackground = () => {
+      let bg = tpse.backgrounds[Math.floor(tpse.backgrounds.length * Math.random())];
+      console.log(mp, 'Refreshing background', bg);
+      let tex = tpse['background-' + bg.id];
+
+      for (let old of container.querySelectorAll('.' + key)) {
+        old.remove();
+      }
+
+      let el = bg.type == 'video' ? document.createElement('video') : new Image();
+      el.src = tex;
+      el.classList.add(key);
+      if (bg.type == 'video') {
+        el.preload = 'auto';
+        el.loop = true;
+        el.muted = true;
+        el.play();
+      }
+      container.appendChild(el);
+    };
+  }
+
+  // Discover calls to `new Image()` to watch and rewrite the src property
+  let nativeImage = unsafeWindow.Image;
+  unsafeWindow.Image = new Proxy(nativeImage, {
+    construct(target, args) {
+      let val = new target(...args);
+      console.debug(mp, "New image created, waiting for first src assignment...");
+      waitUntil(() => val.src != "", async () => {
+        console.debug(mp, "First source assignment", val.src);
+
+        // intentionally use no anchors - skins may have query parameters and will have a tetrio domain prefix
+        let skinURL = /\/res\/skins\/(minos|ghost)\/connected(\.2x)?\.png/.exec(val.src);
+        let sourceTex = skinURL && (skinURL[1] == 'minos' ? tpse.skin : tpse.ghost);
+        if (sourceTex) {
+          console.log(mp, "Redirecting mino skin request", val.src);
+          if (skinURL[2] != '.2x') {
+            // downscale to 1x texture
+            let image = new Image();
+            image.src = sourceTex;
+            await new Promise(res => { image.onload = res; });
+            let canvas = document.createElement('canvas');
+            canvas.width = 1024;
+            canvas.height = 1024;
+            canvas.getContext('2d').drawImage(image, 0, 0, 1024, 1024);
+            sourceTex = canvas.toDataURL('image/png');
+          }
+          val.src = sourceTex;
+        }
+
+        let boardURL = /\/res\/skins\/board\/generic\/(board|queue|grid).png/.exec(val.src);
+        if (boardURL && tpse[boardURL[1]]) {
+          console.log(mp, "Redirecting board skin request", val.src);
+          val.src = tpse[boardURL[1]];
+        }
+
+        let particleURL = /\/res\/particles\/((?:beams\/)?[a-z]+).png/.exec(val.src);
+        let particleID = particleURL && ('particle_' + particleURL[1].replace('/', '_'));
+        if (particleID && tpse[particleID]) {
+          console.log(mp, "Redirecting particle skin request", val.src, "as particle", particleID);
+          val.src = tpse[particleID];
+        }
+
+        let backgroundURL = /\/res\/bg\/(\d+).jpg/.exec(val.src);
+        if (backgroundURL && customBackgroundsEnabled) {
+          refreshBackground();
+          if (tpse.opaqueTransparentBackground) {
+            // 1x1 black pixel
+            val.src = `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1P` +
+              `eAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAB3RJTUUH5AYVBwk0XL/4QAAAABl0RVh0` +
+              `Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAAAMSURBVAjXY2BgYAAAAAQAA` +
+              `Sc0JwoAAAAASUVORK5CYII=`;
+          } else {
+            // 1x1 transparent pixel
+            val.src = `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJ` +
+              `AAAABmJLR0QAAAAAAAD5Q7t/AAAACXBIWXMAAA7DAAAOwwHHb6hkAAAAB3RJTUUH5A` +
+              `QWBjQ7z1871gAAAAtJREFUCNdjYAACAAAFAAHiJgWbAAAAAElFTkSuQmCC`;
+          }
+        }
+      });
+      return val;
+    }
+  });
 
   if (tpse.customSoundAtlas && tpse.customSounds || tpse.music) {
     console.log(mp, "TPSE contains custom sounds or music");
@@ -275,12 +377,13 @@
                 // we aren't rewriting the actual music definition here, so we have to piggyback on whether the song tetrio tried
                 // to play is calm or battle music. This'll probably skew the rng a bit, but that shouldn't be much of a problem.
                 let pool = baseSongDefs.calm.includes(baseSongID) ? 'calm' : baseSongDefs.battle.includes(baseSongID) ? 'battle' : 'random';
-                
+
                 let override = tpse.music.filter(song => song.override == baseSongID)[0];
                 let songs = tpse.music.filter(song => song.metadata.genre.toLowerCase() == pool.toLowerCase());
                 let song = override || songs[Math.floor(Math.random() * songs.length)];
                 console.log(mp, "Rewriting howler arguments for song ID", baseSongID, "with pool", pool, "and custom song", song);
-                if (!song) return; // todo: graceful silent fail case, as is this'll start playing base tetrio music
+                // todo: graceful silent fail case, as is this'll start playing base tetrio music
+                if (!song) throw new Error(mp + ' no song available for pool ' + pool + ' or overriding ' + baseSongID);
                 args[0].src = tpse['song-' + song.id];
                 args[0].sprite = {
                   // (if there's no loopLength but loop is true, the whole song is looped)
@@ -301,12 +404,11 @@
                     }, song.metadata.loopStart)
                   }
                 }
-                console.log(mp, "Final howler config", args[0])
               }
               howler = new target(...args);
               return howler;
             } catch(ex) {
-              console.error(mp, ex);
+              console.warn(mp, 'Failed to rewrite howler config', ex);
               return new target(...args);
             }
           }
