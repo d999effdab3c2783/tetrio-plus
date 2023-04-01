@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Microplus Toolkit for TETR.IO
 // @namespace    https://gitlab.com/UniQMG/tetrio-plus
-// @version      0.2.0
+// @version      0.2.1
 // @description  Some functionality of TETR.IO PLUS reimplemented as a userscript
 // @author       UniQMG
 // @match        https://tetr.io
@@ -22,9 +22,9 @@
   'use strict';
 
   // for bookmarklet usage
-  if (typeof unsafeWindow == 'undefined') unsafeWindow = window;
-  if (typeof GM_getValue == 'undefined') GM_getValue = ((key, def) => localStorage[key] ?? def);
-  if (typeof GM_setValue == 'undefined') GM_setValue = ((key, value) => localStorage[key] = value);
+  if (typeof unsafeWindow == 'undefined') globalThis.unsafeWindow = window;
+  if (typeof GM_getValue == 'undefined') globalThis.GM_getValue = ((key, def) => localStorage[key] ?? def);
+  if (typeof GM_setValue == 'undefined') globalThis.GM_setValue = ((key, value) => localStorage[key] = value);
   let version = typeof GM_info != 'undefined'
     ? 'v' + GM_info.script.version.replace(/[^\w\.]/g, '')
     : 'bookmarklet-v0.1';
