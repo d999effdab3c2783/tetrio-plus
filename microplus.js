@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Microplus Toolkit for TETR.IO
 // @namespace    https://gitlab.com/UniQMG/tetrio-plus
-// @version      0.2.2
+// @version      0.2.3
 // @description  Some functionality of TETR.IO PLUS reimplemented as a userscript
 // @author       UniQMG
 // @match        https://tetr.io
@@ -325,9 +325,10 @@
             image.src = sourceTex;
             await new Promise(res => { image.onload = res; });
             let canvas = document.createElement('canvas');
-            canvas.width = 1024;
-            canvas.height = 1024;
-            canvas.getContext('2d').drawImage(image, 0, 0, 1024, 1024);
+            let res = skinURL[1] == 'minos' ? [1024, 1024] : [512, 512];
+            canvas.width = res[0];
+            canvas.height = res[1];
+            canvas.getContext('2d').drawImage(image, 0, 0, res[0], res[1]);
             sourceTex = canvas.toDataURL('image/png');
           }
           val.src = sourceTex;
