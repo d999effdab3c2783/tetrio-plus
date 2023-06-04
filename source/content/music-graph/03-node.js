@@ -61,6 +61,7 @@ musicGraph(musicGraph => {
       this.variables = {};
       this.background = {
         playing: true,
+        playbackRate: 1,
         x: 0,
         y: 0,
         width: 100,
@@ -108,6 +109,7 @@ musicGraph(musicGraph => {
           let start = Date.now()
           el.play();//.then(() => console.log(`[TETR.IO PLUS] Node took ${Date.now() - start}ms to play`));
         }
+        el.playbackRate = node.background.playbackRate;
         el.style.left = `${node.background.x}vw`;
         el.style.top = `${node.background.y}vh`;
         el.style.width = `${node.background.width}vw`;
@@ -281,6 +283,7 @@ musicGraph(musicGraph => {
         get $bg_opacity() { return node.background.opacity },
         get $bg_paused() { return node.background.currentElement?.paused || 0 },
         get $bg_time() { return node.background.currentElement?.currentTime || 0 },
+        get $bg_playback_rate() { return node.background.currentElement?.playbackRate || 1 },
 
         set $bg_x(val) {
           node.background.x = Node._constrain(val, -100, 100);
@@ -316,6 +319,12 @@ musicGraph(musicGraph => {
             node.runTriggersByName('video-background-seeked', Date.now() - start);
           }, { once: true });
           video.currentTime = Node._constrain(val, 0, video.duration || Infinity);
+        },
+        set $bg_playback_rate(val) {
+          node.background.playbackRate = val;
+          let video = node.background.currentElement;
+          if (!(video instanceof HTMLVideoElement)) return;
+          video.playbackRate = Node._constrain(val, 0, Infinity);
         }
       };
       return new Proxy({}, {
