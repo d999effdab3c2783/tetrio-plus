@@ -43,6 +43,10 @@ fs.writeFileSync(
     /(mainWindow = win;)/,
     '$1 onMainWindow(mainWindow);'
   ).replace(
+    'createWindow();',
+    // https://stackoverflow.com/a/53612021
+    'setTimeout(() => createWindow(), 1000);'
+  ).replace(
     /Report this to osk\./g,
     `Note: TETR.IO PLUS is installed. Do not report issues to osk/TETR.IO while using TETR.IO PLUS.`
   )

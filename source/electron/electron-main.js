@@ -52,10 +52,22 @@ const tplogger = (id, level, ...args) => {
 const greenlog = (...args) => tplogger('greenlog', 'log', ...args);
 const redlog = (...args) => tplogger('redlog', 'log', ...args);
 
+
+const transparentBgEnabled = storeGet('transparentBgEnabled');
+if (transparentBgEnabled) {
+  // https://stackoverflow.com/a/53612021
+  app.commandLine.appendSwitch('--enable-transparent-visuals');
+  // doesn't seem to be necessary, but avoids startup delay, leaving it here for any future problems
+  // app.commandLine.appendSwitch('--disable-gpu');
+}
 function modifyWindowSettings(settings) {
-  if (storeGet('transparentBgEnabled')) {
+  if (transparentBgEnabled) {
     settings.frame = false;
     settings.transparent = true;
+    // This also seems to be necessary "sometimes", but I haven't really discovered
+    // what those times are yet. leaving it here but disabled just in case.
+    // https://www.electronjs.org/docs/latest/tutorial/window-customization#create-transparent-windows
+    // settings.resizable = false;
     settings.backgroundColor = '#00000000';
 
     mainWindow.then(val => {
