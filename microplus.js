@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Microplus Toolkit for TETR.IO
 // @namespace    https://gitlab.com/UniQMG/tetrio-plus
-// @version      0.2.3
+// @version      0.2.4
 // @description  Some functionality of TETR.IO PLUS reimplemented as a userscript
 // @author       UniQMG
 // @match        https://tetr.io
@@ -9,6 +9,7 @@
 // @grant        unsafeWindow
 // @grant        GM_getValue
 // @grant        GM_setValue
+// @grant        GM_deleteValue
 // ==/UserScript==
 
 // This is a userscript, loadable with a userscript manager.
@@ -28,12 +29,25 @@
   if (typeof unsafeWindow == 'undefined') globalThis.unsafeWindow = window;
   if (typeof GM_getValue == 'undefined') globalThis.GM_getValue = ((key, def) => localStorage[key] ?? def);
   if (typeof GM_setValue == 'undefined') globalThis.GM_setValue = ((key, value) => localStorage[key] = value);
+  if (typeof GM_deleteValue == 'undefined') globalThis.GM_deleteValue = (key => delete localStorage[key]);
   let version = typeof GM_info != 'undefined'
     ? 'v' + GM_info.script.version.replace(/[^\w\.]/g, '')
     : 'bookmarklet-v0.1';
 
   let mp = '[µ+]';
-  let tpse = JSON.parse(GM_getValue('tpse', "{}"));
+  let tpse = {};
+  try {
+    tpse = JSON.parse(GM_getValue('tpse', "{}"));
+    if (tpse == null || typeof tpse != 'object') {
+      console.warn(mp, "Stored TPSE is invalid", GM_getValue('tpse'));
+      GM_deleteValue('tpse');
+      tpse = {};
+    }
+  } catch(ex) {
+    console.warn(mp, "Failed to parse loaded tpse, clearing.", GM_getValue('tpse'));
+    GM_deleteValue('tpse');
+    tpse = {};
+  }
   console.log(mp, "Microplus Toolkit for TETR.IO enabled. Don't report issues to TETR.IO/osk during use.", { tpse });
 
   if (unsafeWindow.Howl) {
