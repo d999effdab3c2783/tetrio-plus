@@ -142,8 +142,11 @@
     <legend>Remove TPSE</legend>
     <button id="mp-remove-tpse">Remove current TPSE and reload page</button>
   </fieldset>
-
-  <button style="margin-top: 4px; margin-left: 2px;" onclick="document.querySelector('.microplus-toolkit-menu').style.display = 'none'">Close</button>
+  <div>
+    <span style="font-style: italic">
+    Microplus will close automatically after starting TETR.IO
+    </span>
+  </div>
   <div style="color: red">
     Microplus Toolkit supports only skins, sound effects, music, and custom backgrounds. See wiki page for more details.
   </div>
@@ -210,6 +213,9 @@
         window.location.reload();
       });
     }
+    
+    let menus = document.getElementById("menus");
+    waitUntil(() => !menus || menus.getAttribute('data-menu-type') !== 'none', () => mpMenu.style.display = 'none');
   });
 
   async function waitUntil(predicate, trigger) {
