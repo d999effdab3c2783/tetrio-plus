@@ -9,6 +9,7 @@ import UrlPackLoader from './components/URLPackLoader.js';
 import StyleEditor from './components/StyleEditor.js';
 import '../shared/drop-handler.js';
 const html = arg => arg.join(''); // NOOP, for editor integration.
+
 const app = new Vue({
   template: html`
     <div id="app">
@@ -24,6 +25,13 @@ const app = new Vue({
         </span>
       </h1>
       <p class="tagline">Unofficial TETR.IO Customization Tool</p>
+
+      <fieldset class="section" v-if="isMobileExtensionPopup">
+        <legend>Firefox mobile</legend>
+        TETR.IO PLUS is currently runing on Firefox mobile in the extension popup.<br>
+        All menu-opening buttons will open background tabs.<br>
+        <button @click="openInNewTab()">Open this menu as a regular tab</button> instead to avoid this.
+      </fieldset>
 
       <option-toggle storageKey="tetrioPlusEnabled" mode="hide">
         <fieldset class="section">
@@ -271,7 +279,8 @@ const app = new Vue({
     debugMode: false,
     contentPack: null,
     allowURLPackLoader: null,
-    whitelistedLoaderDomains: null
+    whitelistedLoaderDomains: null,
+    isMobileExtensionPopup: false
   },
   computed: {
     isElectron() {
@@ -291,13 +300,18 @@ const app = new Vue({
       return null;
     }
   },
-  mounted() {
+  async mounted() {
+    if (await this.isMobileBrowser() && await this.isExtensionPopup()) {
+      this.isMobileExtensionPopup = true;
+    }
+
     let str = '';
     window.addEventListener('keydown', evt => {
       str = (str + evt.key).slice(-5);
       if (str == 'debug')
         this.enableDebugMode();
     });
+
     if (browser.tabs.query) {
       browser.tabs.query({
         active: true,
@@ -338,6 +352,17 @@ const app = new Vue({
     this.updateCheck();
   },
   methods: {
+    async isMobileBrowser() {
+      let { name } = await browser.runtime.getBrowserInfo();
+      return name == 'Fennec';
+    },
+    async isExtensionPopup() {
+      return await browser.tabs.getCurrent() == null;
+    },
+    openInNewTab() {
+      browser.tabs.create({ url: window.location.href, active: true });
+      window.close();
+    },
     openInBrowser(url) {
       window.openInBrowser(url)
     },
@@ -361,8 +386,7 @@ const app = new Vue({
       this.debugMode = true;
     },
     async openPanel(url, width=600, height=520) {
-      let { name } = await browser.runtime.getBrowserInfo();
-      if (name == 'Fennec') {
+      if (await this.isMobileBrowser()) {
         browser.tabs.create({
           url: browser.extension.getURL(url),
           active: true
