@@ -8,9 +8,11 @@
 
   // Suppress the 'Exit Tetrio' prompt
   // https://stackoverflow.com/a/47117084
+  let dsepPromise = browser.storage.local.get('disableSuppressExitPrompt');
   EventTarget.prototype.addEventListenerBase = EventTarget.prototype.addEventListener;
-  EventTarget.prototype.addEventListener = function(type, listener, arg) {
-    if (type == 'beforeunload') {
+  EventTarget.prototype.addEventListener = async function(type, listener, arg) {
+    let { disableSuppressExitPrompt } = await dsepPromise;
+    if (type == 'beforeunload' && !disableSuppressExitPrompt) {
       console.log('TETR.IO PLUS: Blocked beforeunload event registration');
       return;
     }

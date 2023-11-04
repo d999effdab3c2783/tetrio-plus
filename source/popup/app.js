@@ -184,6 +184,12 @@ const app = new Vue({
               </span>
             </option-toggle>
 
+            <option-toggle storageKey="disableSuppressExitPrompt" v-if="isElectron">
+              <span title="TETR.IO PLUS by default disables the 'EXIT TETR.IO?' prompt. This option re-enables it.">
+                Disable suppression of exit prompt
+              </span>
+            </option-toggle>
+
             <div v-if="isElectron">
               <option-toggle storageKey="enableUpdateCheck" @changed="updateCheck()">
                 <span title="Notifies you if an update is available">

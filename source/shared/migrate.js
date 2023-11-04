@@ -339,7 +339,7 @@ var migrate = (() => {
 
   /*
     v0.25.3 - Music graph foregrounds
-    + musicGraph[].foreground
+    + musicGraph[].backgroundArea
   */
   migrations.push({
     version: '0.25.3',
