@@ -241,6 +241,9 @@ const app = new Vue({
             <button @click="openSettingsIO()" title="Opens the settings manager">
               Manage data / import TPSE
             </button>
+            <button @click="openFixes()" title="Opens the quick fixes menu">
+              Quick fixes
+            </button>
             <button @click="openTemplates()" title="Opens the template list">
               Templates
             </button>
@@ -410,6 +413,9 @@ const app = new Vue({
       let url = 'source/panels/settingsImportExport/index.html';
       if (installUrl) url += '?install=' + encodeURIComponent(installUrl);
       await this.openPanel(url);
+    },
+    async openFixes() {
+      await this.openPanel('source/panels/fixes/index.html', 1200, 720);
     },
     async openTemplates() {
       await this.openPanel('source/panels/templates/index.html', 600, 170);
