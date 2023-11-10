@@ -21,6 +21,7 @@ files=$(
   find -type f \
     ! -path "./.*" \
     ! -path "./build/*" \
+    ! -path "./target/*" \
     ! -path "./node_modules/*" \
     ! -path "./scripts/*" \
     ! -path "./source/electron/*" \
