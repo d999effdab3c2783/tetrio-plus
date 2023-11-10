@@ -1,8 +1,9 @@
 import { KEYS } from '../../importers/generic-texture.js';
 import importer from '../../importers/import.js';
+const html = arg => arg.join('');
 
 let app = new Vue({
-  template: `
+  template: html`
     <div>
       <h1>TETR.IO PLUS quick fixes</h1>
       <div v-if="status">{{ status }}</div>

@@ -18,8 +18,20 @@ process () {
 }
 
 files=$(
-  find -type f |\
-  grep -Ev 'build|node_modules|\.zip|\.xpi|\.git|electron|package(-lock)?\.json|desktop-manifest\.js|pack.sh|tpseimporter|makeTPSE|\./tpsecore|\./target'
+  find -type f \
+    ! -path "./.*" \
+    ! -path "./build/*" \
+    ! -path "./node_modules/*" \
+    ! -path "./scripts/*" \
+    ! -path "./source/electron/*" \
+    ! -path "./source/bootstrap/electron/*" \
+    ! -path "./tpseimporter/*" \
+    ! -path "./CONTRIBUTING.md" \
+    ! -path "./desktop-manifest.js" \
+    ! -path "./makeTPSE*" \
+    ! -path "./microplus.js" \
+    ! -path "./package-lock.json" \
+    ! -path "./package.json"
 )
 for file in $files; do
   process $file
