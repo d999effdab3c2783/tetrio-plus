@@ -26,13 +26,17 @@ files=$(
     ! -path "./scripts/*" \
     ! -path "./source/electron/*" \
     ! -path "./source/bootstrap/electron/*" \
+    ! -path "./tpsecore/*" \
     ! -path "./tpseimporter/*" \
+    ! -path "./attributions.txt" \
     ! -path "./CONTRIBUTING.md" \
     ! -path "./desktop-manifest.js" \
+    ! -path "./libraries.txt" \
     ! -path "./makeTPSE*" \
     ! -path "./microplus.js" \
     ! -path "./package-lock.json" \
-    ! -path "./package.json"
+    ! -path "./package.json" \
+    ! -path "./yarn.lock"
 )
 for file in $files; do
   process $file
