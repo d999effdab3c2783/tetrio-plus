@@ -109,6 +109,7 @@ musicGraph(({ dispatchEvent, cleanup }) => {
       }
       } catch(ex) { console.error(ex)}
     }, { signal: controller.signal });
+
     document.addEventListener('tetrio-plus-actiontext', evt => {
       let type = locationHeuristic(evt.detail.boardSize, evt.detail.spatialization);
       let values = { $board: evt.detail.board_id };
@@ -165,11 +166,14 @@ musicGraph(({ dispatchEvent, cleanup }) => {
           break;
       }
     }, { signal: controller.signal });
+
     document.addEventListener('tetrio-plus-actionsound', evt => {
       let name = evt.detail.name;
       let type = locationHeuristic(evt.detail.boardSize, evt.detail.spatialization);
+      dispatchEvent(`sfx-${name}`, { $board: evt.detail.board_id });
       dispatchEvent(`sfx-${name}-${type}`, { $board: evt.detail.board_id });
     }, { signal: controller.signal });
+
     document.addEventListener('tetrio-plus-actionheight', evt => {
       // The 'height' is actually the *unfilled* portion of the board,
       // but we want the filled portion to pass for the event
