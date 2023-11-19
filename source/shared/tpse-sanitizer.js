@@ -487,7 +487,7 @@ async function sanitizeAndLoadTPSE(data, storage, options={}) {
         let result5 = filterValues(node, '[]', [
           'id', 'type', 'name', 'audio', 'triggers', 'hidden', 'singleInstance',
           'x', 'y', 'effects', 'audioStart', 'audioEnd', 'background',
-          'backgroundLayer'
+          'backgroundLayer', 'backgroundArea'
         ]);
         if (!result5.success) return result5.error;
       }
