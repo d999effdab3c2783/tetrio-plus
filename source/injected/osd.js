@@ -5,10 +5,17 @@
 */
 (async () => {
   [...document.getElementsByClassName('tetrio-plus-osd')].forEach(c => c.remove());
+
   const { iconSet, baseIconURL } = await new Promise(res => {
+    // some kinda race condition on electron,
+    // retry firing 'getBaseIconURL' to avoid it.
+    let interval = setInterval(() => {
+      window.dispatchEvent(new CustomEvent("getBaseIconURL"));
+    }, 1000);
     window.addEventListener(
       "baseIconURL",
       evt => {
+        clearInterval(interval);
         // json stringify/parse to prevent
         // `Permission denied to access property "then"`
         // even though you can send objects through
@@ -16,7 +23,6 @@
       },
       { once: true }
     );
-    window.dispatchEvent(new CustomEvent("getBaseIconURL"));
   });
 
   let osds = [];
