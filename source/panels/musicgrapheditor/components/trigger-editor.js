@@ -10,6 +10,9 @@ import * as clipboard from '../clipboard.js';
 import /* non-ES6 */ '../../../shared/expval.js';
 const html = arg => arg.join(''); // NOOP, for editor integration.
 
+
+let nonce = 0;
+
 export default {
   template: html`
     <div>
@@ -44,29 +47,29 @@ export default {
 
       <div v-if="dropdownMode.mode == 'fx'">
         <b>Effect scope</b><br>
-        <input type="radio" v-model="trigger.event" :value="dropdownMode.event" id="fxAny" name="fxScope">
-        <label for="fxAny">Player or Enemy (<code>{{dropdownMode.event}}</code>)</label><br>
+        <input type="radio" v-model="trigger.event" :value="dropdownMode.event" :id="nonce + '-fxAny'" :name="nonce + '-fxScope'">
+        <label :for="nonce + '-fxAny'">Player or Enemy (<code>{{dropdownMode.event}}</code>)</label><br>
 
-        <input type="radio" v-model="trigger.event" :value="dropdownMode.event + '-player'" id="fxPlayer" name="fxScope">
-        <label for="fxPlayer">Player (<code>{{dropdownMode.event}}-player</code>)</label><br>
+        <input type="radio" v-model="trigger.event" :value="dropdownMode.event + '-player'" :id="nonce + '-fxPlayer'" :name="nonce + '-fxScope'">
+        <label :for="nonce + '-fxPlayer'">Player (<code>{{dropdownMode.event}}-player</code>)</label><br>
 
-        <input type="radio" v-model="trigger.event" :value="dropdownMode.event + '-enemy'" id="fxEnemy" name="fxScope">
-        <label for="fxEnemy">Enemy (<code>{{dropdownMode.event}}-enemy</code>)</label><br>
+        <input type="radio" v-model="trigger.event" :value="dropdownMode.event + '-enemy'" :id="nonce + '-fxEnemy'" :name="nonce + '-fxScope'">
+        <label :for="nonce + '-fxEnemy'">Enemy (<code>{{dropdownMode.event}}-enemy</code>)</label><br>
       </div>
 
       <div v-if="dropdownMode.mode == 'sfx'">
         <b>Sound effect scope</b><br>
-        <input type="radio" v-model="trigger.event" :value="dropdownMode.event + '-global'" id="sfxGlobal" name="sfxScope">
-        <label for="sfxGlobal">Global (<code>{{dropdownMode.event}}-global</code>)</label><br>
+        <input type="radio" v-model="trigger.event" :value="dropdownMode.event + '-global'" :id="nonce + '-sfxGlobal'" :name="nonce + '-sfxScope'">
+        <label :for="nonce + '-sfxGlobal'">Global (<code>{{dropdownMode.event}}-global</code>)</label><br>
 
-        <input type="radio" v-model="trigger.event" :value="dropdownMode.event" id="sfxAny" name="sfxScope">
-        <label for="sfxAny">Player or Enemy (<code>{{dropdownMode.event}}</code>)</label><br>
+        <input type="radio" v-model="trigger.event" :value="dropdownMode.event" :id="nonce + '-sfxAny'" :name="nonce + '-sfxScope'">
+        <label :for="nonce + '-sfxAny'">Player or Enemy (<code>{{dropdownMode.event}}</code>)</label><br>
 
-        <input type="radio" v-model="trigger.event" :value="dropdownMode.event + '-player'" id="sfxPlayer" name="sfxScope">
-        <label for="sfxPlayer">Player (<code>{{dropdownMode.event}}-player</code>)</label><br>
+        <input type="radio" v-model="trigger.event" :value="dropdownMode.event + '-player'" :id="nonce + '-sfxPlayer'" :name="nonce + '-sfxScope'">
+        <label :for="nonce + '-sfxPlayer'">Player (<code>{{dropdownMode.event}}-player</code>)</label><br>
 
-        <input type="radio" v-model="trigger.event" :value="dropdownMode.event + '-enemy'" id="sfxEnemy" name="sfxScope">
-        <label for="sfxEnemy">Enemy (<code>{{dropdownMode.event}}-enemy</code>)</label><br>
+        <input type="radio" v-model="trigger.event" :value="dropdownMode.event + '-enemy'" :id="nonce + '-sfxEnemy'" :name="nonce + '-sfxScope'">
+        <label :for="nonce + '-sfxEnemy'">Enemy (<code>{{dropdownMode.event}}-enemy</code>)</label><br>
       </div>
 
       <div v-if="['repeating-time-passed', 'time-passed'].includes(trigger.event)">
@@ -203,6 +206,7 @@ export default {
   components: { ExpressionEditor },
   data: () => {
     return {
+      nonce: nonce++,
       events,
       eventValueExtendedModes,
       predicateFocused: false,
