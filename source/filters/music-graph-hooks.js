@@ -80,7 +80,13 @@ createRewriteFilter("Music graph hooks", "https://tetr.io/js/tetrio.js*", {
           }
           let board_id = this.ctx.__tetrio_plus_board_id;
 
-          let patched = Object.create(effect.__proto__);
+
+          // The effect map seems to be empty sometimes, leading to effect being null
+          // (Maybe related to being tiny boards?). TETR.IO by default has an
+          // \`return effect || <variable>\`, where <variable> was last seen in
+          // the form of \`{ parent: undefined, options: undefined }\`. Thus,
+          // should be fine to replace it with an empty object.
+          let patched = Object.create(effect ? effect.__proto__ : {});
           Object.assign(patched, {
             ...effect,
             create(...args) {
@@ -93,7 +99,8 @@ createRewriteFilter("Music graph hooks", "https://tetr.io/js/tetrio.js*", {
                   spatialization: spatialization
                 }
               }));
-              effect.create.apply(this, args);
+              if (effect)
+                effect.create.apply(this, args);
             }
           });
           return patched /* implicit || after this, no semicolon */
