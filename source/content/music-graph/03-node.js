@@ -270,80 +270,26 @@ musicGraph(musicGraph => {
 
     computedVariables(extra) {
       let node = this;
-      let computed = {
-        get $volume() {
-          return node.volume
-        },
-        set $volume(val) {
-          node.volume = Node._constrain(val, 0, 1);
-        },
-        $age: node.currentTime,
-        $time: context.currentTime,
-
-        set $skin_manual_control(val) {
-          document.dispatchEvent(new CustomEvent('tetrio-plus-set-skin-manual-control', { detail: val != 0 }));
-        },
-        set $skin_frame(val) {
-          document.dispatchEvent(new CustomEvent('tetrio-plus-set-skin-frame', { detail: val }));
-        },
-
-        get $bg_x() { return node.background.x },
-        get $bg_y() { return node.background.y },
-        get $bg_width() { return node.background.width },
-        get $bg_height() { return node.background.height },
-        get $bg_opacity() { return node.background.opacity },
-        get $bg_paused() { return node.background.currentElement?.paused || 0 },
-        get $bg_time() { return node.background.currentElement?.currentTime || 0 },
-        get $bg_playback_rate() { return node.background.currentElement?.playbackRate || 1 },
-
-        set $bg_x(val) {
-          node.background.x = Node._constrain(val, -100, 100);
-          node.background.currentElement.style.left = `${node.background.x}vw`;
-        },
-        set $bg_y(val) {
-          node.background.y = Node._constrain(val, -100, 100);
-          node.background.currentElement.style.top = `${node.background.y}vh`;
-        },
-        set $bg_width(val) {
-          node.background.width = Node._constrain(val, 0, 100);
-          node.background.currentElement.style.width = `${node.background.width}vw`;
-        },
-        set $bg_height(val) {
-          node.background.height = Node._constrain(val, 0, 100);
-          node.background.currentElement.style.height = `${node.background.height}vh`;
-        },
-        set $bg_opacity(val) {
-          node.background.opacity = Node._constrain(val, 0, 1);
-          node.background.currentElement.style.opacity = node.background.opacity;
-        },
-        set $bg_paused(val) {
-          node.background.playing = !val;
-          let video = node.background.currentElement;
-          if (!(video instanceof HTMLVideoElement)) return;
-          if (node.background.playing) video.play(); else video.pause();
-        },
-        set $bg_time(val) {
-          let video = node.background.currentElement;
-          if (!(video instanceof HTMLVideoElement)) return;
-          let start = Date.now();
-          video.addEventListener('seeked', () => {
-            node.runTriggersByName('video-background-seeked', Date.now() - start);
-          }, { once: true });
-          video.currentTime = Node._constrain(val, 0, video.duration || Infinity);
-        },
-        set $bg_playback_rate(val) {
-          node.background.playbackRate = val;
-          let video = node.background.currentElement;
-          if (!(video instanceof HTMLVideoElement)) return;
-          video.playbackRate = Node._constrain(val, 0, Infinity);
-        }
-      };
       return new Proxy({}, {
         get(_, prop) {
           if (prop.startsWith('#'))
             return globalVariables[prop];
           if (extra && prop in extra)
             return extra[prop];
+          switch(prop) {
+            case '$volume': return node.volume;
+            case '$age': return node.currentTime;
+            case '$time': return context.currentTime;
+            case '$bg_x': return node.background.x;
+            case '$bg_y': return node.background.y;
+            case '$bg_width': return node.background.width;
+            case '$bg_height': return node.background.height;
+            case '$bg_opacity': return node.background.opacity;
+            case '$bg_paused': return node.background.currentElement?.paused || 0;
+            case '$bg_time': return node.background.currentElement?.currentTime || 0;
+            case '$bg_playback_rate': return node.background.currentElement?.playbackRate || 1;
+            default: return node.variables[prop];
+          }
           if (prop in computed)
             return computed[prop];
           return node.variables[prop];
@@ -351,16 +297,82 @@ musicGraph(musicGraph => {
         set(_, prop, value) {
           if (prop.startsWith('#')) {
             globalVariables[prop] = value;
-          } else if (extra && prop in extra) {
+            return true;
+          }
+          if (extra && prop in extra) {
             // extra is used for values that only exist during the event, meaning they're effectively write-only.
             // drop the write for now.
             // extra variables used by tetrio plus always start with $, but api users can set them to anything.
-          } else if (prop in computed) {
-            computed[prop] = value;
-          } else {
-            node.variables[prop] = value;
+            return true;
           }
-          return true;
+
+          switch (prop) {
+            case '$volume': {
+              node.volume = Node._constrain(value, 0, 1);
+              return true;
+            }
+            case '$skin_manual_control': {
+              document.dispatchEvent(new CustomEvent('tetrio-plus-set-skin-manual-control', { detail: value != 0 }));
+              return true;
+            }
+            case '$skin_frame': {
+              document.dispatchEvent(new CustomEvent('tetrio-plus-set-skin-frame', { detail: value }));
+              return true;
+            }
+            case '$bg_x': {
+              node.background.x = Node._constrain(value, -100, 100);
+              node.background.currentElement.style.left = `${node.background.x}vw`;
+              return true;
+            }
+            case '$bg_y': {
+              node.background.y = Node._constrain(value, -100, 100);
+              node.background.currentElement.style.top = `${node.background.y}vh`;
+              return true;
+            }
+            case '$bg_width': {
+              node.background.width = Node._constrain(value, 0, 100);
+              node.background.currentElement.style.width = `${node.background.width}vw`;
+              return true;
+            }
+            case '$bg_height': {
+              node.background.height = Node._constrain(value, 0, 100);
+              node.background.currentElement.style.height = `${node.background.height}vh`;
+              return true;
+            }
+            case '$bg_opacity': {
+              node.background.opacity = Node._constrain(value, 0, 1);
+              node.background.currentElement.style.opacity = node.background.opacity;
+              return true;
+            }
+            case '$bg_paused': {
+              node.background.playing = !value;
+              let video = node.background.currentElement;
+              if (!(video instanceof HTMLVideoElement)) return true;
+              if (node.background.playing) video.play(); else video.pause();
+              return true;
+            }
+            case '$bg_time': {
+              let video = node.background.currentElement;
+              if (!(video instanceof HTMLVideoElement)) return true;
+              let start = Date.now();
+              video.addEventListener('seeked', () => {
+                node.runTriggersByName('video-background-seeked', Date.now() - start);
+              }, { once: true });
+              video.currentTime = Node._constrain(value, 0, video.duration || Infinity);
+              return true;
+            }
+            case '$bg_playback_rate': {
+              node.background.playbackRate = value;
+              let video = node.background.currentElement;
+              if (!(video instanceof HTMLVideoElement)) return true;
+              video.playbackRate = Node._constrain(val, 0, Infinity);
+              return true;
+            }
+            default: {
+              node.variables[prop] = value;
+              return true;
+            }
+          }
         }
       });
     }
