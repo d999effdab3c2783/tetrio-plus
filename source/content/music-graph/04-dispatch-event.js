@@ -102,12 +102,17 @@ musicGraph(graph => {
       value = { $: value };
 
     if (f8menuActive) {
+      function advancedRound(value) {
+        if ((value > 0 && value < 0.0001) || (value > 0.9999 && value < 1))
+          return +value.toExponential(3);
+        return +value.toFixed(4);
+      }
       let valueKeys = Object.keys(value);
       let dataString = valueKeys.length == 0
         ? null
         : valueKeys.length == 1 && valueKeys[0] == '$'
           ? value.$
-          : Object.entries(value).map(([k,v]) => `${k}=${v}`).join(', ');
+          : Object.entries(value).map(([k,v]) => `${k}=${advancedRound(v)}`).join(', ');
       let str = dataString != null
         ? `${eventName} (${dataString})`
         : eventName;
