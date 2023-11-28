@@ -33,6 +33,9 @@ musicGraph(graph => {
         -- Global variables --
         <div id="tetrio_plus_music_graph_variables">
         </div>
+        -- Nodes --
+        <pre id="tetrio_plus_music_graph_nodes" style="margin: 0px">
+        </pre>
       </div>
 
       <style>
@@ -55,6 +58,7 @@ musicGraph(graph => {
     let container = document.getElementById('tetrio-plus-music-graph-debug');
     let events = document.getElementById('tetrio_plus_music_graph_events');
     let variables = document.getElementById('tetrio_plus_music_graph_variables');
+    let nodesel = document.getElementById('tetrio_plus_music_graph_nodes');
     setInterval(() => {
       container.classList.toggle('disabled', !graph.f8menuEnabled);
       f8menuActive = graph.f8menuEnabled && !f8menu.parentNode.classList.contains('off');
@@ -101,6 +105,8 @@ musicGraph(graph => {
         span.style.marginRight = '4px';
         variables.appendChild(span);
       }
+
+      nodesel.innerText = nodes.map(node => node.toString()).join('\n');
     }, 30);
   }
 
