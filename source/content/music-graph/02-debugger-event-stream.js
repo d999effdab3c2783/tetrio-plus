@@ -1,12 +1,15 @@
 musicGraph(musicGraph => {
   // Event stream for the music graph debugger
   let port = null;
+  let portConnected = false;
   function reconnect() {
     if (port) port.disconnect();
+
     // console.log("[TETR.IO PLUS] Music graph attempting debugger connection");
     port = browser.runtime.connect({
       name: 'music-graph-event-stream'
     });
+    portConnected = false;
 
     let reconnTimeout = setTimeout(() => {
       // console.log("[TETR.IO PLUS] Music graph attempting reconnection");
@@ -16,6 +19,7 @@ musicGraph(musicGraph => {
     port.onDisconnect.addListener(() => {
       console.log("[TETR.IO PLUS] Music graph debugger disconnected");
       port = null;
+      portConnected = false;
       clearTimeout(reconnTimeout);
       setTimeout(() => reconnect(), 5000);
     });
@@ -37,6 +41,7 @@ musicGraph(musicGraph => {
       }
       if (msg.type == 'hello') {
         console.log("[TETR.IO PLUS] Music graph debugger connected");
+        portConnected = true;
         clearTimeout(reconnTimeout);
         // Catch the debugger up to the existing state...
         sendDebugEvent('reset', null);
@@ -110,7 +115,7 @@ musicGraph(musicGraph => {
   const hardLimit = musicGraph.musicGraphHardEventRateLimit;
 
   let resetThrottle = setInterval(() => {
-    if (port) {
+    if (port && portConnected) {
       port.postMessage({
         type: 'event',
         name: 'eventsPerSecond',
@@ -153,7 +158,7 @@ musicGraph(musicGraph => {
         return;
     }
 
-    if (!port) return;
+    if (!port || !portConnected) return;
     port.postMessage({ type: 'event', name, data });
   }
   musicGraph.sendDebugEvent = sendDebugEvent;
