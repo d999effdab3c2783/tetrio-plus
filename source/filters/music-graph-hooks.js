@@ -203,6 +203,7 @@ createRewriteFilter("Music graph hooks", "https://tetr.io/js/tetrio.js*", {
       var match = false;
       var rgx = /play:\s*function\s*\((\w+),\s*(\w+)\s*=\s*1,\s*(\w+)\s*=\s*0,\s*(\w+)\s*=\s*!1\)\s*{/;
       src = src.replace(rgx, ($, a1, a2, a3, a4) => {
+        match = true;
         // a1 = sfx name
         // a2 = volume (0 to 1)
         // a3 = pan left/right (-1 to 1)

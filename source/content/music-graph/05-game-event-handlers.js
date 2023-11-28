@@ -145,6 +145,8 @@ musicGraph(({ dispatchEvent, cleanup }) => {
     // generic event receiver, currently only used from board height-related
     // board identification hooks.
     document.addEventListener('tetrio-plus-event', evt => {
+      console.log('got custom event', evt.detail);
+
       let data = {};
       if (typeof evt.detail.$ == 'number')
         data.$ = evt.detail.$;
@@ -153,7 +155,7 @@ musicGraph(({ dispatchEvent, cleanup }) => {
 
       dispatchEvent(evt.detail.event, data);
 
-      if (evt.detail.boardSize && evt.detail.spatialization) {
+      if (evt.detail.boardSize && typeof evt.detail.spatialization == 'number') {
         let type = locationHeuristic(evt.detail.boardSize, evt.detail.spatialization);
         dispatchEvent(evt.detail.event + '-' + type, data);
       }
