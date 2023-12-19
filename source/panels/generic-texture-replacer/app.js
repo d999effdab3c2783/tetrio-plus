@@ -57,17 +57,9 @@ let app = new Vue({
           compatibility patch. This requires at least a 512x512 texture.
         </option-toggle>
       </div>
-      <div v-if="key == 'winter2022board'">
-        Note: the old winter 2021 board format was brought back for 2022. Using a texture that's too small
-        will cause the game to break, so the board texture has been temporarily split into the normal board
-        and the event board. The event board is only visible while the event is active, and the normal board
-        while the event is disabled. This is functionally equivalent to always having the winter 2021 compatibility
-        patch active, so you need to use a 512x512 'winter event format' texture.
-      </div>
-      <div v-if="key == 'queue' || key == 'winter2022queue'" style="margin-top: 8px">
-        Note: a new queue format was added for the winter 2022 event. The new queue will only be visible
-        during the event, and the old queue will only be visible while you have the event disabled.
-        Please check <a href="#" @click="openWinterCompatWiki">the wiki</a> for up-to-date skin format information.
+      <div v-if="key == 'winter2022board' || key == 'winter2022queue'">
+        Note: the winter 2022 event is over, the 2023 event uses a seperate texture.
+        These textures only remain here so you can download your saved texture, they no longer have a use.
       </div>
     </div>
   `,

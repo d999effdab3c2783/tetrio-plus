@@ -95,14 +95,19 @@ async function sanitizeAndLoadTPSE(data, storage, options={}) {
     forceNearestScaling: parseBoolean('forceNearestScaling'),
     windowTitleStatus: electronOnly(parseBoolean('windowTitleStatus')),
     musicGraphBackground: parseBoolean('musicGraphBackground'),
+
     board: parseFile('board', /^image\/.+$/),
-    winter2022board: parseFile('winter2022board', /^image\/.+$/),
+    queue: parseFile('queue', /^image\/.+$/),
+    grid: parseFile('grid', /^image\/.+$/),
     // disabled because this feature may cause non-obvious crashes
     // will be enabled later on with some strict size checking
     // winterCompatEnabled: parseBoolean('winterCompatEnabled'),
-    queue: parseFile('queue', /^image\/.+$/),
+    winter2022board: parseFile('winter2022board', /^image\/.+$/),
     winter2022queue: parseFile('winter2022queue', /^image\/.+$/),
-    grid: parseFile('grid', /^image\/.+$/),
+    winter2023board: parseFile('winter2023board', /^image\/.+$/),
+    winter2023queue: parseFile('winter2023queue', /^image\/.+$/),
+    frosty2023snowcaps: parseFile('frosty2023snowcaps', /^image\/.+$/),
+
     particle_beam: parseFile('particle_beam', /^image\/.+$/),
     particle_beams_beam: parseFile('particle_beams_beam', /^image\/.+$/),
     particle_bigbox: parseFile('particle_bigbox', /^image\/.+$/),

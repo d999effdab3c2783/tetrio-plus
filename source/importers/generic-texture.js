@@ -9,20 +9,25 @@ export const KEYS = {
     storagekey: 'queue',
     filekey: '_queue'
   },
-  WINTER2022BOARD: {
-    url: 'https://tetr.io/res/skins/board/frosty2022/board.png',
-    storagekey: 'winter2022board',
-    filekey: '_winter2022board'
-  },
-  WINTER2022QUEUE: {
-    url: 'https://tetr.io/res/skins/board/frosty2022/queue.png',
-    storagekey: 'winter2022queue',
-    filekey: '_winter2022queue'
-  },
   GRID: {
     url: 'https://tetr.io/res/skins/board/generic/grid.png',
     storagekey: 'grid',
     filekey: '_grid'
+  },
+  WINTER2023BOARD: {
+    url: 'https://tetr.io/res/skins/board/frosty2023/board.png',
+    storagekey: 'winter2023board',
+    filekey: '_winter2023board'
+  },
+  WINTER2023QUEUE: {
+    url: 'https://tetr.io/res/skins/board/frosty2023/queue.png',
+    storagekey: 'winter2023queue',
+    filekey: '_winter2023queue'
+  },
+  FROSTY2023SNOWCAPS: {
+    url: 'https://tetr.io/res/frosty2023-snowcaps.png',
+    storagekey: 'frosty2023snowcaps',
+    filekey: '_frosty2023snowcaps',
   },
   PARTICLE_BEAM: {
     url: 'https://tetr.io/res/particles/beam.png',
@@ -183,7 +188,17 @@ export const KEYS = {
     url: 'https://tetr.io/res/font/hun.png',
     storagekey: 'font_hun_png',
     filekey: '_font_hun_png'
-  }
+  },
+  WINTER2022BOARD: {
+    url: 'https://tetr.io/res/skins/board/frosty2022/board.png',
+    storagekey: 'winter2022board',
+    filekey: '_winter2022board'
+  },
+  WINTER2022QUEUE: {
+    url: 'https://tetr.io/res/skins/board/frosty2022/queue.png',
+    storagekey: 'winter2022queue',
+    filekey: '_winter2022queue'
+  },
 };
 
 const importers = {};
