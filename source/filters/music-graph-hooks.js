@@ -114,6 +114,8 @@ createRewriteFilter("Music graph hooks", "https://tetr.io/js/tetrio.js*", {
             musicGraphBoardHeightCache[board_id].time = Date.now();
 
 
+
+
           // The effect map seems to be empty sometimes, leading to effect being null
           // (Maybe related to being tiny boards?). TETR.IO by default has an
           // \`return effect || <variable>\`, where <variable> was last seen in
@@ -132,8 +134,15 @@ createRewriteFilter("Music graph hooks", "https://tetr.io/js/tetrio.js*", {
                   spatialization: spatialization
                 }
               }));
+
+              // NOTE:
+              // After some investigation, it seems like the effects map might be per-board
+              // and each fx carries a bit of internal state. Constantly recreating new fx
+              // with 'effect.create.apply(this, args)' was causing some fx to appear repeatedly.
+              // This current approach seems to work, but patching the fx list directly instead
+              // of ad hoc on creation may be worth looking into.
               if (effect)
-                effect.create.apply(this, args);
+                effect.create.apply(effect, args);
             }
           });
           return patched /* implicit || after this, no semicolon */

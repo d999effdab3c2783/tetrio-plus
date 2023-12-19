@@ -145,8 +145,6 @@ musicGraph(({ dispatchEvent, cleanup }) => {
     // generic event receiver, currently only used from board height-related
     // board identification hooks.
     document.addEventListener('tetrio-plus-event', evt => {
-      console.log('got custom event', evt.detail);
-
       let data = {};
       if (typeof evt.detail.$ == 'number')
         data.$ = evt.detail.$;

@@ -170,7 +170,6 @@ async function checkTextures(status) {
       let src = browser.electron
         ? vanillaImage.src.replace('https://tetr.io/', 'tetrio-plus://tetrio-plus/')
         : vanillaImage.src;
-      // debugger;
       let blob = await fetch(src).then(res => res.blob());
       let url = URL.createObjectURL(blob);
       let noCorsVanillaImage = new Image();
