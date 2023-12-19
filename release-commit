@@ -1,0 +1,4 @@
+# Update this commit manually when packaging a new release
+# If it differs from `ci-commit`, the ci commit is shown
+# next to the version number to indicate a nightly release
+6085c06

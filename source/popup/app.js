@@ -8,7 +8,18 @@ import BackgroundManager from './components/BackgroundManager.js';
 import UrlPackLoader from './components/URLPackLoader.js';
 import StyleEditor from './components/StyleEditor.js';
 import '../shared/drop-handler.js';
+
 const html = arg => arg.join(''); // NOOP, for editor integration.
+const release_commit = await fetch('../../../release-commit')
+  .then(res => res.text())
+  .then(text => text.split('\n').filter(line => !line.startsWith('#')).join('').trim())
+  .catch(ex => null);
+const commit = await fetch('../../../ci-commit')
+  .then(res => res.text())
+  .then(text => text.split('\n').filter(line => !line.startsWith('#')).join('').trim())
+  .then(text => text == release_commit ? null : text)
+  .catch(ex => null);
+console.log(release_commit, commit);
 
 const app = new Vue({
   template: html`
@@ -16,7 +27,7 @@ const app = new Vue({
       <h1>
         TETR.IO PLUS
         <span class="version">
-          v{{version}} | <a
+          v{{version}}<span v-if="commit" style="margin-left: 3px">({{ commit }})</span> | <a
             class="wiki"
             href="https://gitlab.com/UniQMG/tetrio-plus/wikis"
             @click="openSource($event)"
@@ -289,7 +300,8 @@ const app = new Vue({
     contentPack: null,
     allowURLPackLoader: null,
     whitelistedLoaderDomains: null,
-    isMobileExtensionPopup: false
+    isMobileExtensionPopup: false,
+    commit
   },
   computed: {
     isElectron() {
