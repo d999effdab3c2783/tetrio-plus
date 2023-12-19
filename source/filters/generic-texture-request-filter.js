@@ -34,9 +34,13 @@ let keys = [
   { key: 'rank_x', url: 'league-ranks/x.png' },
   { key: 'rank_z', url: 'league-ranks/z.png' },
   { key: 'font_hun_png', url: 'font/hun.png' },
-  // temporary: winter event 2022
   { key: 'winter2022board', url: 'skins/board/frosty2022/board.png' },
   { key: 'winter2022queue', url: 'skins/board/frosty2022/queue.png' },
+
+  { key: 'frosty2023board', url: 'skins/board/frosty2023/board.png' },
+  { key: 'frosty2023queue', url: 'skins/board/frosty2023/queue.png' },
+  { key: 'frosty2023snowcaps', url: 'frosty2023-snowcaps.png' },
+
   { key: 'grid', url: 'skins/board/frosty2022/grid.png' }
 ];
 

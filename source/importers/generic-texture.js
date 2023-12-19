@@ -14,15 +14,15 @@ export const KEYS = {
     storagekey: 'grid',
     filekey: '_grid'
   },
-  WINTER2023BOARD: {
+  FROSTY2023BOARD: {
     url: 'https://tetr.io/res/skins/board/frosty2023/board.png',
-    storagekey: 'winter2023board',
-    filekey: '_winter2023board'
+    storagekey: 'frosty2023board',
+    filekey: '_frosty2023board'
   },
-  WINTER2023QUEUE: {
+  FROSTY2023QUEUE: {
     url: 'https://tetr.io/res/skins/board/frosty2023/queue.png',
-    storagekey: 'winter2023queue',
-    filekey: '_winter2023queue'
+    storagekey: 'frosty2023queue',
+    filekey: '_frosty2023queue'
   },
   FROSTY2023SNOWCAPS: {
     url: 'https://tetr.io/res/frosty2023-snowcaps.png',
