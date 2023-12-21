@@ -2,7 +2,9 @@
 apt-get update
 DEBIAN_FRONTEND=noninteractive apt-get install git gcc curl wget -y
 
+echo "Writing commit to resources/ci-commit..."
 git rev-parse --short HEAD > resources/ci-commit # commit for display purposes
+cat resources/ci-commit
 git pull --recurse-submodules # ensure tpsecore is pulled in
 
 # install rust, wasmpack, and related
