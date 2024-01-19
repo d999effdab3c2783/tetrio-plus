@@ -140,6 +140,8 @@ async function sanitizeAndLoadTPSE(data, storage, options={}) {
   	rank_u: parseFile('rank_u', /^image\/.+$/),
   	rank_x: parseFile('rank_x', /^image\/.+$/),
   	rank_z: parseFile('rank_z', /^image\/.+$/),
+  	font_hun_png: parseFile('font_hun_png', /^image\/.+$/),
+  	font_hun_fnt: parseFile('font_hun_fnt', null),
     skin: parseFile('skin', /^image\/.+$/),
     ghost: parseFile('ghost', /^image\/.+$/),
     skinAnim: parseFile('skinAnim', /^image\/.+$/),

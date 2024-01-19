@@ -189,6 +189,11 @@ export const KEYS = {
     storagekey: 'font_hun_png',
     filekey: '_font_hun_png'
   },
+  FONT_HUN_FNT: {
+    url: 'https://tetr.io/res/font/hun.fnt',
+    storagekey: 'font_hun_fnt',
+    filekey: '_font_hun_fnt'
+  },
   WINTER2022BOARD: {
     url: 'https://tetr.io/res/skins/board/frosty2022/board.png',
     storagekey: 'winter2022board',

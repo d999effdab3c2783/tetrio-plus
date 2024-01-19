@@ -34,6 +34,7 @@ let keys = [
   { key: 'rank_x', url: 'league-ranks/x.png' },
   { key: 'rank_z', url: 'league-ranks/z.png' },
   { key: 'font_hun_png', url: 'font/hun.png' },
+  { key: 'font_hun_fnt', url: 'font/hun.fnt' },
   { key: 'winter2022board', url: 'skins/board/frosty2022/board.png' },
   { key: 'winter2022queue', url: 'skins/board/frosty2022/queue.png' },
 
