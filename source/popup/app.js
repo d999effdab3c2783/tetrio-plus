@@ -331,7 +331,7 @@ const app = new Vue({
     }
     const release_commit = await fetchCommitFile('release-commit');
     const previous_commit = await fetchCommitFile('ci-commit-previous');
-    this.commit = (release_commit != previous_commit) ? await fetch(prefix + 'ci-commit') : null;
+    this.commit = (release_commit != previous_commit) ? await fetchCommitFile('ci-commit') : null;
 
     let str = '';
     window.addEventListener('keydown', evt => {
