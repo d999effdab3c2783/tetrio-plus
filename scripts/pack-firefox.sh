@@ -49,5 +49,9 @@ wait
 rm ./build/source/lib/vue.js
 mv ./build/source/lib/vue.runtime.js ./build/source/lib/vue.js
 
+cat ./build/resources/ci-commit
+cat ./build/resources/ci-commit-previous
+cat ./build/resources/release-commit
+
 cd build
 zip -r ../tetrioplus.xpi -9 -u ./*
