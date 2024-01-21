@@ -49,6 +49,8 @@ wait
 rm ./build/source/lib/vue.js
 mv ./build/source/lib/vue.runtime.js ./build/source/lib/vue.js
 
+git rev-parse --short HEAD~1 > ./build/resources/ci-commit-previous
+git rev-parse --short HEAD > ./build/resources/ci-commit
 cat ./build/resources/ci-commit
 cat ./build/resources/ci-commit-previous
 cat ./build/resources/release-commit
