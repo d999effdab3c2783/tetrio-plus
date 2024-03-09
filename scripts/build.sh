@@ -1,4 +1,5 @@
 # The big build script that does everything
+# For use from CI
 set -x
 
 apt-get update
@@ -29,7 +30,7 @@ cp pkg/tpsecore_bg.wasm pkg/tpsecore.js ../source/lib
 cd ..
 
 # build script dependencies
-DEBIAN_FRONTEND=noninteractive apt-get install zip p7zip-full -y
+DEBIAN_FRONTEND=noninteractive apt-get install zip -y
 
 # node canvas dependencies
 DEBIAN_FRONTEND=noninteractive apt-get install build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev -y
@@ -42,7 +43,7 @@ npm i -g yarn
 
 # build it
 git checkout $CI_COMMIT_REF_NAME -f && git pull && git reset --hard $CI_COMMIT_SHA
-'echo Building version v`grep -oP "(?<=version\": \")[^\"]+(?=\")" < manifest.json`'
+echo Building version v`grep -oP "(?<=version\": \")[^\"]+(?=\")" < manifest.json`
 ls -a
 yarn
 bash ./scripts/pack-firefox.sh

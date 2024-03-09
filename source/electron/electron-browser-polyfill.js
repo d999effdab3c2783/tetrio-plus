@@ -246,11 +246,9 @@
       }
     };
 
-
     if (typeof module != 'undefined' && module.exports)
       module.exports = browser;
     if (typeof window != 'undefined') {
-      // window.doublebrowser = browser;
       window.browser = browser;
       window.openInBrowser = href => {
         electron.shell.openExternal(href);
@@ -271,6 +269,7 @@
         }));
         return JSON.parse(text);
       }
+      console.log("set up window", window);
     }
   }
 })();

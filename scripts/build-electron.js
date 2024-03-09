@@ -38,17 +38,14 @@ fs.writeFileSync(
     '$1modifyWindowSettings($2)$3'
   ).replace(
     /(if \(mainWindow)/g,
-    '$1 && !handleWindowOpen(typeof url !== "undefined" ? url : arg)'
+    '$1 && !handleWindowOpen(typeof url !== "undefined" ? url : (typeof arg !== "undefined" ? arg : null))'
   ).replace(
     /(mainWindow = win;)/,
     '$1 onMainWindow(mainWindow);'
   ).replace(
-    'createWindow();',
+    'createWindow();', // TODO: check if still necessary
     // https://stackoverflow.com/a/53612021
     'setTimeout(() => createWindow(), 1000);'
-  ).replace(
-    /Report this to osk\./g,
-    `Note: TETR.IO PLUS is installed. Do not report issues to osk/TETR.IO while using TETR.IO PLUS.`
   )
 );
 

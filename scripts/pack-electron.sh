@@ -1,14 +1,22 @@
-# Before running: apt install p7zip-full
-# Call this script from the tetrio plus (..) directory
+# Call this script from the tetrio plus (..) directory as ./scripts/pack-electron.sh
 set -e
 set -x
-npm i -g asar
 
-wget -q -N https://tetr.io/about/desktop/builds/TETR.IO%20Setup.exe
-7z e ./TETR.IO\ Setup.exe "\$PLUGINSDIR/app-64.7z" -y
-7z e app-64.7z "resources/app.asar" -y
+# ensure asar is available
+mkdir programs
+cd programs
+echo "{}" > package.json
+yarn add @electron/asar@3.2.9
+cd ..
 
-asar extract app.asar out
+if [ ! -f 'TETR.IO Setup.tar.gz' ]; then
+  wget -q -N https://tetr.io/about/desktop/builds/9/TETR.IO%20Setup.tar.gz
+else
+  echo "Using existing 'TETR.IO Setup.tar.gz'"
+fi
+tar --strip-components=2 -zxvf 'TETR.IO Setup.tar.gz' tetrio-desktop-9.0.0/resources/app.asar
+
+./programs/node_modules/@electron/asar/bin/asar.js extract app.asar out
 node ./scripts/build-electron.js
 cd out
 npm i node-fetch@2.6.1 whatwg-url xmldom image-size
@@ -26,7 +34,6 @@ git rev-parse --short HEAD > out/tetrioplus/resources/ci-commit
 cp source/lib/tpsecore_bg.wasm source/lib/tpsecore.js out/tetrioplus/source/lib
 
 # cleanup
-rm TETR.IO\ Setup.exe app-64.7z app.asar
-# fix for https://github.com/nodejs/node-gyp/pull/2721
-rm out/node_modules/register-scheme/build/node_gyp_bins/python3
-asar pack out app.asar
+rm 'TETR.IO Setup.tar.gz' app.asar
+
+./programs/node_modules/@electron/asar/bin/asar.js pack out app.asar

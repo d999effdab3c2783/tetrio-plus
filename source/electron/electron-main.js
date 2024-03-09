@@ -61,6 +61,11 @@ if (transparentBgEnabled) {
   // app.commandLine.appendSwitch('--disable-gpu');
 }
 function modifyWindowSettings(settings) {
+  // Needed to allow access to nodejs APIs like `require` for chaining our preload script and `fs`.
+  // Why is this ridiculous sandbox even a thing? preload.js is already isolated >:C
+  // https://www.electronjs.org/docs/latest/tutorial/sandbox#configuring-the-sandbox
+  settings.webPreferences.sandbox = false;
+
   if (transparentBgEnabled) {
     settings.frame = false;
     settings.transparent = true;
@@ -83,6 +88,8 @@ function modifyWindowSettings(settings) {
     });
   }
 
+  greenlog("window settings", JSON.stringify(settings));
+
   return settings;
 }
 
@@ -95,7 +102,11 @@ const mainWindow = new Promise(res => {
   }
 });
 
+// Called by many places from `main.js`, notably just before navigation from 'open-url' and 'second-instance' events.
+// Also called by some other places which typically pass null.
+// Returning true from this function aborts the call site's operation.
 function handleWindowOpen(url) {
+  if (url == null) return false;
   let root = 'tetrio://tetrioplus/tpse/';
   if (url.startsWith(root)) {
     let tpse = url.substring(root.length);
@@ -120,7 +131,12 @@ async function createTetrioPlusWindow() {
     width: 432,
     height: 600,
     webPreferences: {
+      // needed to allow access to node APIs like `fs`
+      sandbox: false,
+      // this is the default, but it doesn't hurt to specify
       nodeIntegration: false,
+      // needed for `electron-browser-polyfill` to set `window.browser`
+      contextIsolation: false,
       preload: path.join(app.getAppPath(), 'tetrioplus/source/electron/electron-browser-polyfill.js')
     }
   });
@@ -211,19 +227,19 @@ function ipcBroadcast(excludeId, channel, ...args) {
 
 // Rebroadcast channels for implementing the browser.runtime.connect API
 ipcMain.on('tetrio-plus-listening-on-channel', async (evt, nonce) => {
-  tplogger('ipc', 'debug', "Window", evt.sender.webContents.id, "listening on channel", nonce);
+  tplogger('ipc', 'debug', "Window", evt.sender.id, "listening on channel", nonce);
   // indicates this sender is listening on this channel and that it
   // should be automatically closed when its not doing that anymore.
-  addChannel(evt.sender.webContents.id, nonce);
+  addChannel(evt.sender.id, nonce);
 })
 ipcMain.on('tetrio-plus-create-channel', async (evt, nonce, ...args) => {
-  tplogger('ipc', 'debug', "Window", evt.sender.webContents.id, "created channel", nonce);
+  tplogger('ipc', 'debug', "Window", evt.sender.id, "created channel", nonce);
   // this sender *created* this channel, so close it when its gone.
-  addChannel(evt.sender.webContents.id, nonce);
+  addChannel(evt.sender.id, nonce);
   ipcBroadcast(null, 'tetrio-plus-create-channel', nonce, ...args);
 });
 ipcMain.on('tetrio-plus-close-channel', async (evt, nonce, ...args) => {
-  tplogger('ipc', 'debug', "Window", evt.sender.webContents.id, "closed channel", nonce);
+  tplogger('ipc', 'debug', "Window", evt.sender.id, "closed channel", nonce);
   // this channel was closed by a sender or a reciever
   for (let [key, subchannels] of channels.entries())
     channels.set(key, subchannels.filter(channel => channel.nonce != nonce));
@@ -235,7 +251,7 @@ ipcMain.on('tetrio-plus-close-channel', async (evt, nonce, ...args) => {
   // disconnections so its safe to do this. (Also there'll never be a memory
   // leak since the TETR.IO window can't be reopened).
   // This may cause ISSUES in the future
-  ipcBroadcast(evt.sender.webContents.id, 'tetrio-plus-close-channel', nonce, ...args);
+  ipcBroadcast(evt.sender.id, 'tetrio-plus-close-channel', nonce, ...args);
 });
 ipcMain.on('tetrio-plus-channel-message', async (evt, nonce, ...args) => {
   ipcBroadcast(null, 'tetrio-plus-channel-message', nonce, ...args);
@@ -301,7 +317,11 @@ ipcMain.on('tetrio-plus-cmd', async (evt, arg, arg2) => {
         width: arg2.width,
         height: arg2.height,
         webPreferences: {
+          // needed to allow access to node APIs like `fs` for the electron browser polyfill
+          sandbox: false,
           nodeIntegration: false,
+          // needed for `electron-browser-polyfill` to set `window.browser`
+          contextIsolation: false,
           preload: path.join(__dirname, 'electron-browser-polyfill.js')
         }
       });
