@@ -36,8 +36,7 @@ DEBIAN_FRONTEND=noninteractive apt-get install zip -y
 DEBIAN_FRONTEND=noninteractive apt-get install build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev -y
 
 # install node
-curl -sL https://deb.nodesource.com/setup_16.x | sh
-apt install nodejs -y
+apt install nodejs npm -y
 node -v
 npm i -g yarn
 
