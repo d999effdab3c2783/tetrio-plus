@@ -416,7 +416,8 @@ app.whenReady().then(async () => {
         greenlog("Fetching data", originalUrl);
 
         function fetchDirect() {
-          return new Promise(resolve => {
+          return new Promise((resolve, reject) => {
+            greenlog("fetch ", originalUrl);
             https.get(originalUrl, { headers: req.headers }, response => {
               contentType = response.headers['content-type'];
               greenlog("http response ", contentType);
@@ -458,8 +459,24 @@ app.whenReady().then(async () => {
                   resolve(joined);
                 }
               });
-            })
+            }).on('error', error => {
+              redlog("Failed to fetch ", originalUrl, ": ", error);
+              reject(error);
+            });
           });
+        }
+
+        async function fetchDirectWithRetries() {
+          for (let i = 0; i < 5; i++) {
+            try {
+              return await fetchDirect();
+            } catch(ex) {
+              let delay = i * 2000 + 500;
+              redlog(`Retrying fetch in ${delay}ms (retry ${i+1} of 5)`);
+              await new Promise(res => setTimeout(res, delay));
+            }
+          }
+          return await fetchDirect();
         }
 
         async function fetchIPC() {
@@ -480,7 +497,7 @@ app.whenReady().then(async () => {
           })
         }
 
-        data = storeGet('forceIPCFetch') ? await fetchIPC() : await fetchDirect();
+        data = storeGet('forceIPCFetch') ? await fetchIPC() : await fetchDirectWithRetries();
         greenlog("Fetched", data.slice(0, 100));
       }
 
