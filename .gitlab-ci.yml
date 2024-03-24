@@ -4,6 +4,8 @@ stages:
   - build
 
 build:
+  variables:
+    RUNNER_SCRIPT_TIMEOUT: 25m
   stage: build
   cache:
     key: rust-build
