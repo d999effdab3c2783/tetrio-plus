@@ -18,7 +18,7 @@ export default {
           style="display: none"
           ref="fileupload"
           multiple
-          accept=".mp3"
+          accept="audio/*"
           @change="change"
         />
     </div>
