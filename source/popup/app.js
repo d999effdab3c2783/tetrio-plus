@@ -240,7 +240,7 @@ const app = new Vue({
             </span>
           </option-toggle>
           <theme-manager v-if="!isElectron" />
-          <div v-if="isElectron">
+          <div v-if="isElectron && showUninstallerButton">
             <button @click="uninstall">Uninstall TETR.IO PLUS</button>
           </div>
           <div class="control-group">
@@ -302,6 +302,9 @@ const app = new Vue({
     isElectron() {
       return !!browser.electron;
     },
+    showUninstallerButton() {
+      return this.isElectron && browser.runtime.getManifest().browser_specific_settings.desktop_client.show_uninstaller_button;
+    },
     version() {
       return browser.runtime.getManifest().version;
     },
@@ -331,7 +334,8 @@ const app = new Vue({
     }
     const release_commit = await fetchCommitFile('release-commit');
     const previous_commit = await fetchCommitFile('ci-commit-previous');
-    this.commit = (release_commit != previous_commit) ? await fetchCommitFile('ci-commit') : null;
+    const override = await fetchCommitFile('override-commit');
+    this.commit = override || ((release_commit != previous_commit) ? await fetchCommitFile('ci-commit') : null);
 
     let str = '';
     window.addEventListener('keydown', evt => {

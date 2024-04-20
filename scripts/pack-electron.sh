@@ -18,9 +18,6 @@ tar --strip-components=2 -zxvf 'TETR.IO Setup.tar.gz' tetrio-desktop-9.0.0/resou
 
 ./programs/node_modules/@electron/asar/bin/asar.js extract app.asar out
 node ./scripts/build-electron.js
-cd out
-yarn add --ignore-engines --verbose node-fetch@2.6.1 whatwg-url xmldom image-size
-cd ..
 
 mkdir -p out/tetrioplus
 git archive HEAD | tar -x -C out/tetrioplus
@@ -29,6 +26,12 @@ rm out/tetrioplus/resources/ci-commit-previous
 rm out/tetrioplus/resources/ci-commit
 git rev-parse --short HEAD~1 > out/tetrioplus/resources/ci-commit-previous
 git rev-parse --short HEAD > out/tetrioplus/resources/ci-commit
+
+cd out
+cp tetrioplus/resources/desktop-ci/yarn.lock .
+patch package.json tetrioplus/resources/desktop-ci/package.json.diff
+yarn --ignore-engines
+cd ..
 
 # note: bit of a hack, assumes we're being called from build.sh after doing the tpsecore build
 cp source/lib/tpsecore_bg.wasm source/lib/tpsecore.js out/tetrioplus/source/lib

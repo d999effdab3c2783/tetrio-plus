@@ -9,6 +9,7 @@ const manifest = JSON.parse(fs.readFileSync(
 manifest.browser_specific_settings.desktop_client = {
   // Hash of the uninstall app.asar
   "vanilla_hash": "1F159868625EEE200AE683BCB78BF3AF3691C438",
+  "show_uninstaller_button": true,
   "scripts": [
     "source/shared/migrate.js",
     "source/shared/tpse-sanitizer.js",
