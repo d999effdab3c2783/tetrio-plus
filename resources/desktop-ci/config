@@ -7,4 +7,5 @@ UNINSTALL_SUPPORT="true"
 # The hash of the vanilla app.asar. Update with `sha1sum app.asar`
 export VANILLA_APP_ASAR_HASH="1F159868625EEE200AE683BCB78BF3AF3691C438"
 
-# Don't forget to update the version in both `manifest.json` and `package.json`
+# Don't forget to update the version in both `manifest.json` and `package.json`,
+# and the latest release hash in `resources/release-commit`
