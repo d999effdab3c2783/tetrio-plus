@@ -57,8 +57,8 @@ createRewriteFilter("Tetrio.js Music", "https://tetr.io/js/tetrio.js*", {
     // Some values used in the music definition were refactored out into constants.
     // This may not be particularly future-proof, but should work for now.
     // Also fill in true/false since those will get caught up by the constant-substitution regex.
-    let constants = { true: true, false: false };
-    let regex = /(\w+)=['"](INTERFACE|SPECIAL|BATTLE|CALM|HURT\s*RECORD)['"]/g;
+    let constants = { true: 'true', false: 'false', null: 'null' };
+    let regex = /(\w+)=['"](INTERFACE|SPECIAL|BATTLE|CALM|HURT\s*RECORD|TETR\.IO)['"]/g;
     for (let [_, constant, value] of src.matchAll(regex))
       constants[constant] = `"${value}"`;
     console.log("Extracted music definition constants", constants);
@@ -86,10 +86,11 @@ createRewriteFilter("Tetrio.js Music", "https://tetr.io/js/tetrio.js*", {
           .replace(
             /("[^"]+":)([A-Za-z]+)/g,
             (_, key, constant) => {
-              if (!constants) console.error("Unknown constant", constant)
+              if (!constants[constant]) console.error("Unknown constant", constant)
               return key + constants[constant];
             }
           )
+          .replace()
           // Add leading 0 to numbers, since json doesn't allow numbers to start with a dot
           .replace(/("[^"]+":)(\.\d+)/, (_, key, number) => key + '0' + number);
 
