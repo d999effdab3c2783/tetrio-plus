@@ -190,7 +190,7 @@
         osd.remove();
 
         // Generally once one is destroyed, all of them are going to be destroyed.
-        // This isn't certain, so disable it until more events are received.
+        // This isn't certain, so disable it instead until more events are received.
         for (let osd of osds)
           osd.osd.classList.add('disabled');
 
@@ -208,52 +208,46 @@
   }
 
   document.addEventListener('tetrio-plus-on-game', evt => {
+    let instance = evt.detail.instance;
     // If the event source type is a socket, its someone else's board
     // (Singleplayer, replay, and own boards in multiplayer have no sockets)
     // This has been seen as 'keyboard' (own board), 'replay' (everyone in a replay), and 'socket' (remote players)
     // Seems to fire twice per board for 'replay', as well.
-    if (evt.detail.type() == 'socket') return;
+    if (instance._type == 'socket') return;
 
     // limit number of active OSDs
     if ([...document.querySelectorAll('.tetrio-plus-osd')].length > 10) return;
-
-    let osd = createOSD();
-
-    let game = evt.detail;
-
-    game.bind(onEvent);
-
-    let original_destroy = game.destroy.bind(game);
-    game.destroy = function(...args) {
-      dropGame();
-      original_destroy(...args);
-    }
-
-
-    function dropGame() {
-      game.unbind(onEvent);
-      osd.destroy();
-    }
-
-    function onEvent(evt) {
+    
+    // defer creating OSD for replays until key events actually come in
+    // looks like e.g. viewing a replay stats page creates event sources,
+    // presumably to get information necessary for summarizing the replay,
+    // but doesn't actually "play" them back
+    let osd = null;
+    if (instance._type == 'keyboard')
+      osd = createOSD();
+    
+    // other keys seen: 'exit' 'retry'
+    instance.On('keydown', (evt) => {
+      if (!osd) osd = createOSD();
       osd.reenable();
-      if (evt.type == 'start') {
-        osd.buttons.forEach(el => el.setActive(false));
-      }
+      // this isn't technically correct since the exit can be aborted by
+      // failing to hold it long enough, but in general by the time an exit
+      // is started, the player intends to finish it. Better than having
+      // old OSDs hang around.
+      if (evt.data.key == 'exit') osd.destroy();
+      osd.buttonMap[evt.data.key]?.setActive(true)
+    });
+    instance.On('keyup', (evt) => {
+      if (!osd) osd = createOSD();
+      osd.reenable();
+      osd.buttonMap[evt.data.key]?.setActive(false);
+    });
 
-      if (evt.type == 'end') {
-        osd.buttons.forEach(el => el.setActive(false));
-        dropGame();
-        return;
-      }
-
-      let elem = osd.buttonMap[evt.data.key];
-      if (!elem) return;
-
-      switch (evt.type) {
-        case 'keyup': elem.setActive(false); break;
-        case 'keydown': elem.setActive(true); break;
-      }
+    let original_destroy = instance.Destroy.bind(instance);
+    instance.Destroy = function(...args) {
+      console.log("event source destroyed");
+      if (osd) osd.destroy();
+      original_destroy(...args);
     }
   });
 })().catch(ex => console.error(ex));

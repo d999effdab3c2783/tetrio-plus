@@ -5,21 +5,24 @@ createRewriteFilter("OSD hooks", "https://tetr.io/js/tetrio.js*", {
   },
   onStop: async (storage, url, src, callback) => {
     /*
-      This patch emits a custom event when a new board is initialized
+      This patch emits a custom event when a new input handler is initialized
     */
     patched = false;
-    let reg2 = /(bindEventSource:\s*function\((\w+)\)\s*{)([^}]+})/;
-    src = src.replace(reg2, (match, pre, varName, post) => {
+    let reg2 = /class [^{]+{\s*static\s*_EVENTKEYS((?!constructor)[\S\s])*constructor\([^)]+\)\s*{\s*super\([\w$]+\),/;
+    src = src.replace(reg2, (match) => {
       patched = true;
-      return (
-        pre + `
-        document.dispatchEvent(new CustomEvent('tetrio-plus-on-game', {
-          detail: ${varName}
-        }));` +
-        post
-      );
+      return match + `
+        (() => {
+          let that = this;
+          setTimeout(() => {
+            document.dispatchEvent(new CustomEvent('tetrio-plus-on-game', {
+              detail: { instance: that }
+            }));
+          });
+        })(),
+      `;
     });
-    if (!patched) console.log('OSD hooks filter broke, stage 1/2');
+    if (!patched) console.log('OSD hooks filter broke');
 
     callback({
       type: 'text/javascript',
