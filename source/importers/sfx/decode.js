@@ -51,22 +51,12 @@ export async function fetchAtlas() {
   let srcRequest = await window.fetch(srcUrl);
   let src = await srcRequest.text();
 
-  let regex = /TETRIO_SE_SHEET\s*=\s*(?:({[^}]+})|.+?JSON\.parse\("\[([\d,]+))/;
-  let match = regex.exec(src);
+  let match = /({[^{}]*boardappear\:\[[\d.e+]+,[\d.e+]+\][^{}]*})/.exec(src);
   if (!match) throw new Error('Failed to find sfx atlas');
 
-  let json;
-  if (match[1]) {
-    json = match[1]
-      // Replace quotes
-      .replace(/'/g, `"`)
-      // Quote unquoted keys
-      .replace(/(\s*?{\s*?|\s*?,\s*?)(['"])?([a-zA-Z0-9_]+)(['"])?:/g, '$1"$3":');
-  } else if (match[2]) {
-    // Existing sfx atlas decoding had a different format since tetrioplus
-    // injected an updated atlas definition
-    throw new Error('This feature has been removed and should be inaccessible');
-  }
+  let json = match[1]
+    // Quote unquoted keys
+    .replace(/(\s*?{\s*?|\s*?,\s*?)(['"])?([a-zA-Z0-9_]+)(['"])?:/g, '$1"$3":');
 
   return JSON.parse(json);
 }
