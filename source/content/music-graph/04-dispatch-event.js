@@ -10,6 +10,7 @@ musicGraph(graph => {
   let eventLimit = 20;
   let recentEvents = [];
   let eventLastFired = {};
+  let recording = { active: false, buffer: [] };
 
   let f8menu = document.getElementById('devbuildid');
   let f8menuActive = false;
@@ -52,17 +53,43 @@ musicGraph(graph => {
           display: inline-block;
         }
       </style>
+      <button id="tetrio_plus_record_replay" style="pointer-events: all">record</button>
     `;
     f8menu.parentNode.insertBefore(div, f8menu.nextSibling.nextSibling);
-
+    
     let container = document.getElementById('tetrio-plus-music-graph-debug');
     let events = document.getElementById('tetrio_plus_music_graph_events');
     let variables = document.getElementById('tetrio_plus_music_graph_variables');
     let nodesel = document.getElementById('tetrio_plus_music_graph_nodes');
+    
+    let record = document.getElementById('tetrio_plus_record_replay');
+    record.addEventListener('click', () => {
+      if (!recording.active) {
+        recording.active = true;
+        recording.buffer.length = 0;
+      } else {
+        recording.active = false;
+        let data = { __schema: 'tetrio-plus-music-graph-replay', events: recording.buffer };
+        let blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+        let a = document.createElement('a');
+        a.style.display = 'block';
+        a.style.color = 'cyan';
+        a.style['pointer-events'] = 'all';
+        a.innerText = `download replay (${Math.round(blob.size/1024)}KiB)`;
+        a.href = URL.createObjectURL(blob);
+        a.download = `tetrio-plus-music-graph-replay_${recording.buffer.length}-events_${new Date().toISOString()}.json`;
+        container.appendChild(a);
+      }
+    });
+
     setInterval(() => {
       container.classList.toggle('disabled', !graph.f8menuEnabled);
       f8menuActive = graph.f8menuEnabled && !f8menu.parentNode.classList.contains('off');
       if (!f8menuActive) return;
+      
+      record.innerText = recording.active
+        ? `Stop recording (${recording.buffer.length} events...)`
+        : `Record music graph events to file`;
 
       events.innerHTML = ``;
       for (let i = recentEvents.length-1; i >= recentEvents.length-eventLimit; i--) {
@@ -146,6 +173,9 @@ musicGraph(graph => {
 
       if (recentEvents.length > eventLimit*2)
         recentEvents = recentEvents.slice(-eventLimit);
+    }
+    if (recording.active) {
+      recording.buffer.push({ real_time: Date.now(), audio_time: graph.audioContext.currentTime, event: eventName, value: value });
     }
 
 

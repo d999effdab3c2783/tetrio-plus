@@ -93,7 +93,6 @@ try {
     let a_p = /^combo_\d+_power$/.test(a);
     let b_c = /^combo_\d+$/.test(b);
     let b_p = /^combo_\d+_power$/.test(b);
-    console.log({ a, b, a_c, a_p, b_c, b_p });
     if (a_c && b_p) return -1;
     if (a_p && b_c) return 1;
     return a > b ? 1 : -1;

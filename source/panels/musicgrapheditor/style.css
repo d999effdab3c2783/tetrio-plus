@@ -9,14 +9,14 @@ body {
 
 .split-pane {
   display: grid;
-  grid-template-areas: "left right";
-  grid-template-columns: 465px minmax(40%, 1fr);
+  grid-template-areas: "node-editor visual-editor debugger";
+  grid-template-columns: 465px minmax(200px, 2fr) minmax(200px, max-content);
   height: 100%;
 }
 
 .split-pane .node-editor {
   overflow-y: auto;
-  grid-area: left;
+  grid-area: node-editor;
   border: 2px solid black;
   background: white;
   position: relative;
@@ -25,7 +25,20 @@ body {
 .split-pane .visual-editor {
   border: 2px solid black;
   border-left: 0px;
-  grid-area: right;
+  grid-area: visual-editor;
+}
+
+.split-pane:not(.debugger-active) .visual-editor {
+  grid-column-start: visual-editor;
+  grid-column-end: debugger;
+  grid-row-start: visual-editor;
+  grid-row-end: debugger;
+}
+
+.split-pane .debugger {
+  border: 2px solid black;
+  border-left: 0px;
+  grid-area: debugger;
 }
 
 .form-control {
@@ -44,14 +57,18 @@ body {
   justify-content: center;
 }
 
-@media (max-width: 800px) {
+@media (max-width: 875px) {
   .split-pane {
-    grid-template-areas: "left" "right";
-    grid-template-rows: auto minmax(40%, 1fr);
+    grid-template-areas: "node-editor" "visual-editor" "debugger";
+    grid-template-rows: 1fr 1fr 1fr;
     grid-template-columns: auto;
   }
 
   .split-pane .visual-editor {
+    border: 2px solid black;
+    border-top: 0px;
+  }
+  .split-pane .debugger {
     border: 2px solid black;
     border-top: 0px;
   }
@@ -312,4 +329,27 @@ input:invalid {
 }
 .visual-editor .live-node > .live-node-tooltip {
   z-index: 5;
+}
+
+.debugger {
+  padding: 4px;
+}
+.replay-log {
+  border: 1px solid black;
+  font-family: monospace;
+  margin: 2px;
+  padding: 4px;
+}
+.replay-log .replay-item:not(:last-child) {
+  border-bottom: 1px solid black;
+}
+.replay-log .replay-item::before {
+  content: '- ';
+}
+.replay-log .replay-item.active::before {
+  content: '> ';
+}
+.replay-log .replay-item.active {
+  color: red;
+  font-weight: bold;
 }

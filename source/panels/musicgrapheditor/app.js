@@ -1,13 +1,15 @@
 import VisualEditor from './components/visual-editor/visual-editor.js';
 import NodeEditor from './components/node-editor.js';
 import * as clipboard from './clipboard.js';
+import debug from './debug.js';
 const html = arg => arg.join(''); // NOOP, for editor integration.
 import /* non ES6 */ '../../shared/migrate.js';
 import /* non ES6 */ '../../shared/tpse-sanitizer.js';
+import Debugger from './components/debugger.js';
 
 const app = new Vue({
   template: html`
-    <div class="split-pane">
+    <div class="split-pane" :class="{ 'debugger-active': !!debug.port }">
       <div class="node-editor">
         <div class="pane-header">
           <button @click="save">Save changes</button>
@@ -56,6 +58,7 @@ const app = new Vue({
               />/s
             </div>
           </fieldset>
+          
           <node-editor
             v-for="node of nodes"
             :key="node.id"
@@ -70,7 +73,8 @@ const app = new Vue({
         <button @click="pasteNode()" :disabled="!copiedNode">Paste node</button>
         <div class="scroll-past-end"></div>
       </div>
-      <visual-editor :nodes="nodes" @focus="focus" @change="pushState" />
+      <visual-editor :nodes="nodes" :debug="debug" @focus="focus" @change="pushState" ref="veditor" />
+      <debugger v-show="debug.port" :debug="debug" ref="debugger"></debugger>
     </div>
   `,
   data: {
@@ -83,9 +87,10 @@ const app = new Vue({
     nodes: [],
     maxId: 0,
     saveOpacity: 0,
-    clipboard: clipboard.clipboard
+    clipboard: clipboard.clipboard,
+    debug: debug
   },
-  components: { NodeEditor, VisualEditor },
+  components: { NodeEditor, VisualEditor, Debugger },
   computed: {
     ...clipboard.computed
   },
@@ -225,6 +230,7 @@ const app = new Vue({
     }).then(() => {
       this.pushState();
     });
+    
     window.addEventListener('keydown', event => {
       let tag = event.target.tagName;
       if (['INPUT', 'TEXTAREA'].includes(tag))
@@ -256,6 +262,11 @@ const app = new Vue({
           this.pushState();
           break;
       }
+    });
+    
+    this.$on('save', () => {
+      if (!this.debug.port) return;
+      this.debug.port.postMessage({ type: 'reload' });
     });
   }
 });

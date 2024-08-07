@@ -10,9 +10,9 @@ import utils from './ve-utils-mixin.js';
 export default {
   template: html`
     <div ref="editor" class="visual-editor" :class="editorClass" :style="editorStyle" tabindex="0" @wheel="wheel">
-      <div class="events-per-second" v-if="port">
-        Events per second: {{ eventsPerSecond }}
-        <div v-if="eventsPerSecondWarning">
+      <div class="events-per-second" v-if="debug.port">
+        Events per second: {{ debug.eventsPerSecond }}
+        <div v-if="debug.eventsPerSecondWarning">
           ⚠️ Above reporting threshold, some events may not display.
         </div>
       </div>
@@ -24,13 +24,13 @@ export default {
             :key="node.id"
             :nodes="nodes"
             :node="node"
-            :connected="!!port"
+            :connected="!!debug.port"
             :show-anchors="camera.scale > 0.5"
             @spawn="spawn(node)"
           />
           <div style="display: contents">
             <ve-live-node
-              v-for="instance of liveInstances"
+              v-for="instance of debug.liveInstances"
               v-if="isFinite(instance.sourceId)"
               :key="instance.instanceId"
               :camera="camera"
@@ -49,7 +49,7 @@ export default {
             :key="node.id"
             :nodes="nodes"
             :node="node"
-            :events="recentTriggerFires[node.id] || []"
+            :events="debug.recentTriggerFires[node.id] || []"
             :draw-thick="camera.scale <= 0.5"
             :show-labels="camera.scale > 0.5"
           />
@@ -57,30 +57,17 @@ export default {
       </div>
     </div>
   `,
-  props: ['nodes'],
+  props: ['nodes', 'debug'],
   components: { veSvgContainer, veSvgNodeLinks, veLiveNode, veNode },
   mixins: [utils],
   data: () => ({
     camera: { x: 0, y: 0, scale: 1 },
     selectRect: null,
-
-    // Debugger stuff
-    liveInstances: [],
-    recentTriggerFires: {}, // node -> array
-    eventsPerSecond: 0,
-    eventsPerSecondWarning: false,
-    port: null
   }),
   computed: {
-    liveInstanceById() {
-      let map = {};
-      for (let node of this.liveInstances)
-        map[node.instanceId] = node;
-      return map;
-    },
     liveInstancesByNode() {
       let map = {};
-      for (let node of this.liveInstances) {
+      for (let node of this.debug.liveInstances) {
         if (!map[node.sourceId]) map[node.sourceId] = [];
         map[node.sourceId].push(node);
       }
@@ -195,139 +182,24 @@ export default {
         this.$emit('change');
     },
     spawn(node) {
-      this.port.postMessage({
+      this.debug.port.postMessage({
         type: 'spawn',
         sourceId: node.id
       });
     },
     kill(instanceId) {
-      this.port.postMessage({
+      this.debug.port.postMessage({
         type: 'kill',
         instanceId
       });
-    },
-    onDebugMessage(msg) {
-      if (msg.type != 'event') return;
-      // console.log(msg.type, msg.name, Object.entries(msg.data).map(e => `${e[0]}: ${e[1]}`).join(', '));
-      switch (msg.name) {
-        case 'eventsPerSecond': {
-          this.eventsPerSecond = msg.eventsPerSecond;
-          this.eventsPerSecondWarning = msg.warning;
-          break;
-        }
-
-        case 'reset': {
-          this.liveInstances = [];
-          this.recentTriggerFires = {};
-          break;
-        }
-
-        case 'node-created': {
-          this.liveInstances.push({
-            ...msg.data,
-            sourceId: null,
-            variables: {},
-            recentTriggers: []
-          });
-          break;
-        }
-
-        case 'node-destroyed': {
-          let i = this.liveInstances.findIndex(({ instanceId }) => {
-            return instanceId == msg.data.instanceId;
-          });
-          if (i == -1) break;
-          this.liveInstances.splice(i, 1);
-          break;
-        }
-
-        case 'node-source-set': {
-          let instance = this.liveInstanceById[msg.data.instanceId];
-          if (!instance) break;
-          if (isFinite(msg.data.lastSourceId) && (msg.data.lastSourceId != instance.sourceId)) {
-            // Ensure forks are animated
-            instance.sourceId = msg.data.lastSourceId;
-            setTimeout(() => instance.sourceId = msg.data.sourceId, 20);
-          } else {
-            instance.sourceId = msg.data.sourceId;
-          }
-          // msg.data.lastSourceId
-          break;
-        }
-
-        case 'node-set-variable': {
-          let instance = this.liveInstanceById[msg.data.instanceId];
-          if (!instance) break;
-          this.$set(instance.variables, msg.data.variable, msg.data.value);
-          break;
-        }
-
-        case 'node-run-trigger': {
-          if (!this.recentTriggerFires[msg.data.sourceId])
-            this.$set(this.recentTriggerFires, msg.data.sourceId, []);
-
-          let recent = this.recentTriggerFires[msg.data.sourceId];
-          if (recent.length > 10) recent.splice(0, 1);
-          recent.push({
-            instance: msg.data.instanceId,
-            trigger: msg.data.trigger,
-            success: msg.data.success,
-            values: msg.data.values,
-            date: Date.now(),
-            age: 0,
-            maxAge: 500
-          });
-          break;
-        }
-
-      }
-    },
-    tickRecentEvents() {
-      for (let key of Object.keys(this.recentTriggerFires)) {
-        this.recentTriggerFires[key] = this.recentTriggerFires[key].filter(el=>{
-          el.age = Date.now() - el.date;
-          return el.age < el.maxAge;
-        });
-      }
     }
   },
   mounted() {
-    setInterval(() => this.tickRecentEvents(), 16);
-
     this.copy = this.copy.bind(this);
     this.paste = this.paste.bind(this);
     window.addEventListener('copy', this.copy);
     window.addEventListener('paste', this.paste);
     window.ve = this;
-
-    this.$root.$on('save', () => {
-      if (!this.port) return;
-      this.port.postMessage({ type: 'reload' });
-    });
-
-    browser.runtime.onConnect.addListener(port => {
-      if (port.name != 'music-graph-event-stream') return;
-      if (this.port) {
-        port.disconnect();
-        return;
-      }
-      console.log("Music graph instance connected");
-      this.port = port;
-      this.eventsPerSecond = 0;
-      this.eventsPerSecondWarning = false;
-      port.onMessage.addListener(msg => {
-        this.onDebugMessage(msg)
-      });
-      port.onDisconnect.addListener(() => {
-        console.log("Music graph instance disconnected");
-        this.liveInstances = [];
-        this.recentTriggerFires = {};
-        this.port = null;
-      });
-      setTimeout(() => {
-        this.port.postMessage({ type: 'hello' });
-      });
-    });
 
     interact('.visual-editor svg text')
       .on('tap', event => {

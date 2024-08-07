@@ -39,6 +39,10 @@ musicGraph(musicGraph => {
             console.log("[TETR.IO PLUS] Music graph debugger destroyed node", node);
           }
       }
+      if (msg.type == 'event') {
+        musicGraph.dispatchEvent(msg.event, msg.value);
+        console.log('[TETR.IO PLUS] Music graph debugger simulated event', msg.event, msg.value);
+      }
       if (msg.type == 'hello') {
         console.log("[TETR.IO PLUS] Music graph debugger connected");
         portConnected = true;
