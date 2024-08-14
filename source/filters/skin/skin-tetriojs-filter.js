@@ -27,8 +27,8 @@ createRewriteFilter("Scale mode forcer", "https://tetr.io/js/tetrio.js*", {
   },
   onStop: async (storage, url, src, callback) => {
     let newSrc = src.replace(
-      /(\w{1,5}=new\s*PIXI\.Application\({)/g,
-      `$1__:void (() => { PIXI.settings.SCALE_MODE=PIXI.SCALE_MODES.NEAREST; })(),`
+      /(\w{1,5}\s*=\s*new\s*(\w+)\.Application\({)/g,
+      `$1__:void (() => { $2.settings.SCALE_MODE=$2.SCALE_MODES.NEAREST; })(),`
     );
     if (newSrc == src) console.warn('Scale mode forcer hook broke (1/1)');
     callback({ type: 'text/javascript', data: newSrc, encoding: 'text' });
@@ -70,17 +70,17 @@ createRewriteFilter("Advanced skin loader", "https://tetr.io/js/tetrio.js*", {
       var rgx = /(\w+\((\w+),\s*(\w+),\s*(\w+),\s*(\w+),\s*(\w+),\s*(\w+)\)\s*{[\S\s]{0,200}Object\.keys\(\3\)\.forEach\(\(\w\s*=>\s*{)([\S\s]+?)}/
       var match = false;
       src = src.replace(rgx, ($, pre, a1, a2, a3, a4, a5, a6, loopBody) => {
-        var rgx2 = /(\w+\[\w+\])\s*=\s*new\s*PIXI\.Texture\((\w+),\s*new\s*PIXI.Rectangle\(([^,]+),([^,]+),([^,]+),([^,]+)\)\)/;
+        var rgx2 = /(\w+\[\w+\])\s*=\s*new\s*(\w+)\.Texture\((\w+),\s*new\s*\w+.Rectangle\(([^,]+),([^,]+),([^,]+),([^,]+)\)\)/;
         let res2 = rgx2.exec(loopBody);
         if (!res2) return;
-        let [$2, target, baseTexArg, rectArg1, rectArg2, rectArg3, rectArg4] = res2;
+        let [$2, target, pixiArg, baseTexArg, rectArg1, rectArg2, rectArg3, rectArg4] = res2;
         loopBody = (`
           let { frames, delay } = ${b64Recode(res.skinAnimMeta || { frames: 0, delay: 1 })};
           let { frames: gframes, delay: gdelay } = ${b64Recode(res.ghostAnimMeta || { frames: 0, delay: 1 })};
 
-          let first = new PIXI.Texture(
+          let first = new ${pixiArg}.Texture(
             ${baseTexArg},
-            new PIXI.Rectangle(${rectArg1}, ${rectArg2}, ${rectArg3}, ${rectArg4})
+            new ${pixiArg}.Rectangle(${rectArg1}, ${rectArg2}, ${rectArg3}, ${rectArg4})
           );
 
           let ghost = (
@@ -101,9 +101,9 @@ createRewriteFilter("Advanced skin loader", "https://tetr.io/js/tetrio.js*", {
           first.tetrioPlusAnimatedArray = [];
           for (let _i = 0; _i < frames; _i++) {
             first.tetrioPlusIsGhost = ghost;
-            first.tetrioPlusAnimatedArray.push(new PIXI.Texture(
+            first.tetrioPlusAnimatedArray.push(new ${pixiArg}.Texture(
               ${baseTexArg},
-              new PIXI.Rectangle(
+              new ${pixiArg}.Rectangle(
                 ${rectArg1} + (_i%16) * scale,
                 ${rectArg2} + Math.floor(_i/16) * scale,
                 ${rectArg3},
@@ -125,9 +125,9 @@ createRewriteFilter("Advanced skin loader", "https://tetr.io/js/tetrio.js*", {
       }
 
       // Replace sprites with animated sprites
-      var rgx = /(wang24[\S\s]{0,50}(.)\s*=\s*\w+\.assets\[.+?\].textures[\S\s]{0,50})new PIXI.Sprite\(\2\)/g;
+      var rgx = /(wang24[\S\s]{0,50}(.)\s*=\s*\w+\.assets\[.+?\].textures[\S\s]{0,50})new (\w+).Sprite\(\2\)/g;
       var match = 0;
-      src = src.replace(rgx, ($, pre, texVar) => {
+      src = src.replace(rgx, ($, pre, texVar, pixiVar) => {
         match += 1;
         return pre + (`
           (() => {
@@ -135,9 +135,9 @@ createRewriteFilter("Advanced skin loader", "https://tetr.io/js/tetrio.js*", {
             let { frames: gframes, delay: gdelay } = ${b64Recode(res.ghostAnimMeta || {})};
 
             if (!${texVar}.tetrioPlusAnimatedArray) // Bail on non-tetrioplus skin
-              return new PIXI.AnimatedSprite([${texVar}]);
+              return new ${pixiVar}.AnimatedSprite([${texVar}]);
 
-            let sprite = new PIXI.AnimatedSprite(${texVar}.tetrioPlusAnimatedArray);
+            let sprite = new ${pixiVar}.AnimatedSprite(${texVar}.tetrioPlusAnimatedArray);
             sprite.animationSpeed = 1/delay;
 
             if (${texVar}.tetrioPlusIsGhost) {
@@ -149,7 +149,7 @@ createRewriteFilter("Advanced skin loader", "https://tetr.io/js/tetrio.js*", {
             function tickFrame() {
               let targetFrame = window.__tetrioPlusAdvSkinLoader.manualControl
                 ? Math.floor(window.__tetrioPlusAdvSkinLoader.frame) % frames
-                : ~~(((PIXI.Ticker.shared.lastTime/1000) * 60 / delay) % frames);
+                : ~~(((${pixiVar}.Ticker.shared.lastTime/1000) * 60 / delay) % frames);
               sprite.gotoAndStop(targetFrame);
 
               if (first || (sprite.parent && sprite.parent.parent))
