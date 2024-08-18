@@ -46,6 +46,7 @@ musicGraph(musicGraph => {
     container.style.height = '100vh';
     container.style.top = '0px';
     container.style.left = '0px';
+    container.style.pointerEvents = 'none';
     document.body.appendChild(container);
   }
 
