@@ -103,7 +103,7 @@
         },
         async getBrowserInfo() {
           return {
-            name: 'Tetrio Desktop',
+            name: 'TETR.IO Desktop',
             vendor: 'osk',
             version: '¯\\_(ツ)_/¯',
             buildId: '¯\\_(ツ)_/¯'
@@ -197,7 +197,7 @@
               new Store({
                 name: 'tpkey-' + key,
                 cwd: 'tetrioplus'
-              }).set({ value });
+              }).set({ value: value ?? null });
             }
           },
           async remove(keys) {
