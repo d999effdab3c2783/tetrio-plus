@@ -54,6 +54,8 @@ export async function fetchAtlas(abort_controller_signal=undefined) {
   let match = /({[^{}]*boardappear\:\[[\d.e+]+,[\d.e+]+\][^{}]*})/.exec(src);
   if (!match) throw new Error('Failed to find sfx atlas');
 
+  console.log("sfx atlas match", match[1]);
+  
   let json = match[1]
     // Quote unquoted keys
     .replace(/(\s*?{\s*?|\s*?,\s*?)(['"])?([a-zA-Z0-9_]+)(['"])?:/g, '$1"$3":');
