@@ -276,7 +276,9 @@ for (let [id, { storagekey, filekey }] of Object.entries(KEYS)) {
   importers[id] = {
     async test(files) {
       if (files.length != 1) return false;
-      return files[0].name.includes(filekey);
+      let name = files[0].name;
+      let max = Math.max(...Object.values(KEYS).filter(key => name.includes(key.filekey)).map(key => key.filekey.length));
+      return name.includes(filekey) && filekey.length == max;
     },
     async load(files, storage) {
       await storage.set({ [storagekey]: files[0].data });
