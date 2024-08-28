@@ -13,8 +13,7 @@ let app = new Vue({
           <option :value="key" v-for="key of Object.keys(keys)">{{ key }}</option>
         </select>
         with
-        <input v-if="key == 'font_hun_fnt'" name="file" ref="file" type="file" accept=".fnt" @change="set" :disabled="!key"/>
-        <input v-else name="file" ref="file" type="file" accept="image/*" @change="set" :disabled="!key"/>
+        <input name="file" ref="file" type="file" :accept="acceptedMime" @change="set" :disabled="!key"/>
       </div>
 
       <div class="preview" v-if="keys[key]">
@@ -91,6 +90,9 @@ let app = new Vue({
         : 'https://tetr.io/';
       let path = this.keys[this.key].slice('https://tetr.io/'.length);
       return prefix + path + this.cacheBuster;
+    },
+    acceptedMime() {
+      return this.key == 'font_hun_fnt' ? '.fnt' : 'image/*';
     }
   },
   watch: {
