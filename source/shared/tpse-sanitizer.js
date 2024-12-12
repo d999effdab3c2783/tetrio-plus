@@ -328,7 +328,7 @@ async function sanitizeAndLoadTPSE(data, storage, options={}) {
 
         if (!options.skipFileDependencies) {
           let mp3 = importData['song-' + song.id];
-          if (typeof mp3 != 'string' || !/^data:audio\/.+?;base64,/.test(mp3))
+          if (typeof mp3 != 'string' || !/^data:(video|audio)\/.+?;base64,/.test(mp3))
             return `ERROR: Missing/invalid songfile ${song.id}`
           toSet['song-' + song.id] = mp3;
         }
