@@ -602,7 +602,7 @@ app.whenReady().then(async () => {
     browser,
     app,
     setTimeout,
-    TextEncoder: class { encode(val) { return val } }, // noop polyfill
+    TextEncoder: TextEncoder,
     fetch: require('node-fetch'),
     URL: require('whatwg-url').URL,
     DOMParser: require('xmldom').DOMParser,
