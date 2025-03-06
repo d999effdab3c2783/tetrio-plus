@@ -97,7 +97,9 @@ function fetchAudio({ on_header, on_buffer, on_error, signal }) {
     let request = await window.fetch(url, { signal });
     let reader = request.body.getReader({ mode: 'byob' });
     
+    window.trsd_log = [];
     async function read(length, expect_eof=false) {
+      window.trsd_log.push(`tRSD parse: read ${length} ${expect_eof}`);
       let buffer = new ArrayBuffer(length);
       
       // as usual, `min` isn't supported in chrome. at least it's not too hard to work around here.
@@ -105,14 +107,22 @@ function fetchAudio({ on_header, on_buffer, on_error, signal }) {
       while (offset < length) {
         let remaining = length - offset;
         let { value, done } = await reader.read(new Uint8Array(buffer, offset, remaining), { min: remaining });
+        window.trsd_log.push(`tRSD parse: read chunk of ${value.byteLength} bytes`);
         offset += value.byteLength;
         buffer = value.buffer;
         
         if (done && !expect_eof) {
+          window.trsd_log.push(`tRSD unexpected EOF ${$offset}/${length}`);
           if (signal?.aborted)
             throw new Error(`tRSD: request aborted`);
-          throw new Error(`tRSD: unexpected EOF after reading ${value} of ${length} bytes`);
+          throw new Error(`tRSD: unexpected EOF after reading ${offset} of ${length} bytes`);
         }
+      }
+      if (length < 100) {
+        let bytes = [...new Uint8Array(buffer)].map(s => s.toString(16).padStart(2, 0)).join(' ');
+        window.trsd_log.push(`tRSD parse: read bytes: ${bytes}`);
+      } else {
+        window.trsd_log.push(`tRSD parse: read a lot of bytes (${offset} / ${buffer.byteLength})`);
       }
       
       // if we're expecting EOF, try reading another byte to see if it EOFs
@@ -144,6 +154,7 @@ function fetchAudio({ on_header, on_buffer, on_error, signal }) {
       
       let name = new TextDecoder().decode(await read(name_length));
       sprites.push({ offset: audio_offset, name });
+      window.trsd_log.push(`tRSD: found sprite ${name_length} ${name.slice(0,100)} ${audio_offset}`);
       if (sprites.length > 2000) throw new Error("tRSD: too many sprites, parser probably in a bad state");
     }
     
@@ -155,6 +166,7 @@ function fetchAudio({ on_header, on_buffer, on_error, signal }) {
     on_header?.({ major, minor, sprites });
     
     let audio_buffer_length = (await read(4)).getUint32(0, true);
+    window.trsd_log.push(`tRSD: expected buffer length ${audio_buffer_length}`);
     let buffer = (await read(audio_buffer_length, true)).buffer;
     console.log(new Uint8Array(buffer));
     on_buffer?.(buffer);
