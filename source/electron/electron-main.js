@@ -498,7 +498,7 @@ app.whenReady().then(async () => {
         }
 
         data = storeGet('forceIPCFetch') ? await fetchIPC() : await fetchDirectWithRetries();
-        greenlog("Fetched", data.slice(0, 100));
+        greenlog("Fetched", typeof data, data?.slice(0, 100)?.replace?.(/[^a-zA-Z0-9!@#$%^&*\(\)_=,./{}\[\]`~'";:\|\\\-+]/g, '_') ?? data);
       }
 
       function filterCallback(response) {
@@ -517,6 +517,7 @@ app.whenReady().then(async () => {
             
           case 'arraybuffer':
             data = Buffer.from(newData, 0, newData.byteLength);
+            greenlog("packing", newData, "into buffer", data);
             break;
 
           default:

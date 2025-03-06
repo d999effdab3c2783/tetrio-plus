@@ -95,18 +95,24 @@ function fetchAudio({ on_header, on_buffer, on_error, signal }) {
       ? 'tetrio-plus://tetrio-plus/sfx/tetrio.opus.rsd?bypass-tetrio-plus'
       : 'https://tetr.io/sfx/tetrio.opus.rsd?bypass-tetrio-plus';
     let request = await window.fetch(url, { signal });
-    let length = request.headers.get('content-length');
-    if (!length) throw new Error(`tRSD: no content-length response header`);
     let reader = request.body.getReader({ mode: 'byob' });
     
     async function read(length, expect_eof=false) {
-      let buffer = new Uint8Array(length);
-    	let { value, done } = await reader.read(buffer, { min: length });
+      let buffer = new ArrayBuffer(length);
       
-      if (done && !expect_eof) {
-        if (signal?.aborted)
-          throw new Error(`tRSD: request aborted`);
-        throw new Error(`tRSD: unexpected EOF after reading ${value} of ${length} bytes`);
+      // as usual, `min` isn't supported in chrome. at least it's not too hard to work around here.
+      let offset = 0;
+      while (offset < length) {
+        let remaining = length - offset;
+        let { value, done } = await reader.read(new Uint8Array(buffer, offset, remaining), { min: remaining });
+        offset += value.byteLength;
+        buffer = value.buffer;
+        
+        if (done && !expect_eof) {
+          if (signal?.aborted)
+            throw new Error(`tRSD: request aborted`);
+          throw new Error(`tRSD: unexpected EOF after reading ${value} of ${length} bytes`);
+        }
       }
       
       // if we're expecting EOF, try reading another byte to see if it EOFs
@@ -115,7 +121,7 @@ function fetchAudio({ on_header, on_buffer, on_error, signal }) {
         if (!done) throw new Error(`tRSD: expected EOF`);
       }
       
-      return new DataView(value.buffer);
+      return new DataView(buffer);
     }
     
     let header_ok = (await read(4)).getUint32(0) == 0x74525344; // "tRSD"

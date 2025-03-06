@@ -81,7 +81,7 @@ mainWindow.webContents.session.webRequest.onBeforeRequest(
 
       callback({});
     })().catch(ex => {
-      greenlog("CWR Err", ex);
+      greenlog("createRewriteFilter error: ", ex);
       callback({});
     })
   }

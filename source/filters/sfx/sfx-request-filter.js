@@ -49,7 +49,7 @@ createRewriteFilter("Sfx Request", "https://tetr.io/sfx/tetrio.opus.rsd*", {
     header_buffer.push(...new Uint8Array(temp_buffer));
     header_buffer.push(0, 0, 0, 0); // name length of last sprite
     
-    let audio_buffer = Uint8Array.fromBase64(customSounds.substring(customSounds.indexOf(';base64,') + ';base64,'.length));
+    let audio_buffer = convertDataURIToBinary(customSounds);
     view.setUint32(0, audio_buffer.byteLength, true);
     header_buffer.push(...new Uint8Array(temp_buffer));
     
@@ -64,3 +64,19 @@ createRewriteFilter("Sfx Request", "https://tetr.io/sfx/tetrio.opus.rsd*", {
     });
   }
 });
+
+
+// https://gist.github.com/borismus/1032746
+var BASE64_MARKER = ';base64,';
+function convertDataURIToBinary(dataURI) {
+  var base64Index = dataURI.indexOf(BASE64_MARKER) + BASE64_MARKER.length;
+  var base64 = dataURI.substring(base64Index);
+  var raw = atob(base64);
+  var rawLength = raw.length;
+  var array = new Uint8Array(new ArrayBuffer(rawLength));
+
+  for(i = 0; i < rawLength; i++) {
+    array[i] = raw.charCodeAt(i);
+  }
+  return array;
+}

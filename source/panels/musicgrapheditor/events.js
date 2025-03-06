@@ -85,7 +85,7 @@ try {
   let controller = new AbortController();
   div.querySelector('button').addEventListener('click', () => controller.abort());
   
-  let fetch = await fetchAtlas(controller.signal);
+  let fetch = await fetchAtlas(controller);
   
   soundEffects = Object.keys(fetch).sort((a,b) => {
     [a,b] = [a,b].map(x => x.replace(/\d+/g, m => m.padStart(4, '0')));

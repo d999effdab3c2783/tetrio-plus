@@ -22,7 +22,8 @@
   ipcRenderer.on('renderspace-fetch-file', async (_evt, url) => {
     console.log(`TETR.IO PLUS: Fetching file from renderspace:`, url);
     let result = await fetch(url).then(res => {
-      let utf8 = !/^(image|audio)/.test(res.headers.get('content-type'));
+      // TETR.IO's proprietary sound format is 'application/rsd+xml'
+      let utf8 = !/^(image|audio|application\/rsd)/.test(res.headers.get('content-type'));
       console.log(
         `TETR.IO PLUS: Userspace fetch content-type: ` +
         `${res.headers.get('content-type')} (utf8? ${utf8})`
