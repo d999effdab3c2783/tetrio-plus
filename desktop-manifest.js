@@ -25,7 +25,6 @@ manifest.browser_specific_settings.desktop_client = {
     "source/filters/music/music-tetriojs-filter.js",
     "source/filters/music/music-request-filter.js",
     "source/filters/sfx/sfx-request-filter.js",
-    "source/filters/sfx/sfx-tetriojs-filter.js",
     "source/filters/bg/animated-bg-tetriojs-filter.js",
     "source/filters/bg/bg-request-filter.js",
     "source/filters/bg/bg-tetriojs-filter.js",

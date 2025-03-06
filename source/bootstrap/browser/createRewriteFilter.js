@@ -51,6 +51,9 @@ function createRewriteFilter(name, url, options) {
             case 'text':
               filter.write(new TextEncoder().encode(data));
               break;
+            case 'arraybuffer':
+              filter.write(data);
+              break;
             default:
               throw new Error('Unknown encoding');
           }

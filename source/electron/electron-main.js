@@ -514,6 +514,10 @@ app.whenReady().then(async () => {
             data = Buffer.from(newData.split('base64,')[1], 'base64');
             greenlog("Rewrote b64 data url to", data);
             break;
+            
+          case 'arraybuffer':
+            data = Buffer.from(newData, 0, newData.byteLength);
+            break;
 
           default:
             throw new Error('Unknown encoding');
