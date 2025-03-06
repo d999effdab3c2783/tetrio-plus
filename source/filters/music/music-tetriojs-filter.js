@@ -35,8 +35,13 @@ createRewriteFilter("Tetrio.js Music", "https://tetr.io/js/tetrio.js*", {
       let key = `akai-tsuchi-wo-funde.mp3?song=${song.id}&tetrioplusinjectioncomment=`;
       if (song.metadata.genre == 'OVERRIDE') {
         newSongObject[song.override] = song.metadata;
+        // populate type 2: LEGACY
+        // not really sure what this does yet, but all the other old-system songs use it
+        // so it's probably a good idea to have
+        newSongObject[song.override].type = 2;
       } else {
         newSongObject[key] = song.metadata;
+        newSongObject[key].type = 2;
       }
     }
 
@@ -61,6 +66,14 @@ createRewriteFilter("Tetrio.js Music", "https://tetr.io/js/tetrio.js*", {
     let regex = /(\w+)=['"](INTERFACE|SPECIAL|BATTLE|CALM|HURT\s*RECORD|TETR\.IO)['"]/g;
     for (let [_, constant, value] of src.matchAll(regex))
       constants[constant] = `"${value}"`;
+    // Some new instances of these were put into a map for β1.6.2
+    // Dealing with the whole map seems a bit overcomplicated, so for now just pull out the raw values
+    let [_, constant, _2] = /(\w+)=Object.freeze\({STATIC:0,DYNAMIC:1,LEGACY:2}\)/g.exec(src);
+    constants[constant + '.STATIC'] = 0; // doesn't seem used yet
+    constants[constant + '.DYNAMIC'] = 1; // used for exactly one track ID'd 'zenith' and entitled 'zenith tower'
+    constants[constant + '.LEGACY'] = 2; // used for all other music
+    
+    
     console.log("Extracted music definition constants", constants);
 
     let replaced = false;
@@ -82,21 +95,24 @@ createRewriteFilter("Tetrio.js Music", "https://tetr.io/js/tetrio.js*", {
             /(\s*?{\s*?|\s*?,\s*?)(['"])?([a-zA-Z0-9_]+)(['"])?:/g,
             '$1"$3":'
           )
+          // Add leading 0 to numbers, since json doesn't allow numbers to start with a dot
+          .replace(/("[^"]+":)(\.\d+)/, (_, key, number) => key + '0' + number)
           // Fill in constants
           .replace(
-            /("[^"]+":)([A-Za-z]+)/g,
+            /("[^"]+":)([A-Za-z\.]+)/g,
             (_, key, constant) => {
               if (!constants[constant]) console.error("Unknown constant", constant)
               return key + constants[constant];
             }
-          )
-          .replace()
-          // Add leading 0 to numbers, since json doesn't allow numbers to start with a dot
-          .replace(/("[^"]+":)(\.\d+)/, (_, key, number) => key + '0' + number);
+          );
 
         let music;
         if (disableVanillaMusic) {
-          music = {};
+          // Leave in type 1 (DYNAMIC) music, which is only used for zenith tower so far.
+          // We don't want to remove the zenith tower music because it's not currently moddable
+          // and there's nothing to replace it with.
+          let oldMusic = JSON.parse(sanitizedMusicJson);
+          music = Object.fromEntries(Object.entries(oldMusic).filter(([k, v]) => v.type == 1));
         } else {
           try {
             music = JSON.parse(sanitizedMusicJson);
@@ -115,6 +131,7 @@ createRewriteFilter("Tetrio.js Music", "https://tetr.io/js/tetrio.js*", {
 
         Object.assign(music, newSongObject);
         let newMusicJson = JSON.stringify(music);
+        console.log("newMusicJson", newMusicJson);
 
         // Note: as of 6.4.1, TETR.IO generates 'random' from 'calm' and 'battle' pools automatically.
         // The 'random' field will be overwritten, and then the whole definition is frozen.

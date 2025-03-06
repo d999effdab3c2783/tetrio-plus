@@ -46,7 +46,7 @@ createRewriteFilter("Music Request", "https://tetr.io/res/bgm/*", {
         console.log("[Music Request filter] No song ID, returning empty audio file", { url });
         callback({
           type: 'audio/wav',
-          data: 'UklGRkYAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAATElTVBoAAABJTkZPSVNGVA4AAABMYXZmNjAuMTYuMTAwAGRhdGEAAAAA',
+          data: 'data:audio/wav;base64,UklGRkYAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAATElTVBoAAABJTkZPSVNGVA4AAABMYXZmNjAuMTYuMTAwAGRhdGEAAAAA',
           encoding: 'base64-data-url'
         });
       }

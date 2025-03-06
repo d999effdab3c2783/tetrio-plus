@@ -64,10 +64,10 @@ const app = new Vue({
         .replace(/!1/g, 'false')
         // quote unquoted keys
         .replace(/(\s*?{\s*?|\s*?,\s*?)(['"])?([a-zA-Z0-9_]+)(['"])?:/g, '$1"$3":')
-        // Fill in constants with whatever, we only really care about song names here
-        .replace(/("[^"]+":)([A-Za-z]+)/g, (_, key, constant) => key + 'null')
         // Add leading 0 to numbers, since json doesn't allow numbers to start with a dot
-        .replace(/("[^"]+":)(\.\d+)/, (_, key, number) => key + '0' + number);
+        .replace(/("[^"]+":)(\.\d+)/, (_, key, number) => key + '0' + number)
+        // Fill in constants with whatever, we only really care about song names here
+        .replace(/("[^"]+":)([A-Za-z\.]+)/g, (_, key, constant) => key + 'null');
       this.builtin = JSON.parse(sanitized);
       console.log('fetched builtins', this.builtin);
     } catch(ex) {

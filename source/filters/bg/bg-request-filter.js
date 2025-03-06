@@ -26,7 +26,6 @@ createRewriteFilter("Bg Request", "https://tetr.io/res/bg/*", {
         data: value,
         encoding: 'base64-data-url'
       });
-      // filter.write(convertDataURIToBinary(value[key]));
       return;
     }
 
@@ -64,19 +63,4 @@ createRewriteFilter("Bg Request", "https://tetr.io/res/bg/*", {
 
 function dataUriMime(uri) {
   return /^data:([^;]+);/.exec(uri)[1];
-}
-
-// https://gist.github.com/borismus/1032746
-var BASE64_MARKER = ';base64,';
-function convertDataURIToBinary(dataURI) {
-  var base64Index = dataURI.indexOf(BASE64_MARKER) + BASE64_MARKER.length;
-  var base64 = dataURI.substring(base64Index);
-  var raw = atob(base64);
-  var rawLength = raw.length;
-  var array = new Uint8Array(new ArrayBuffer(rawLength));
-
-  for(i = 0; i < rawLength; i++) {
-    array[i] = raw.charCodeAt(i);
-  }
-  return array;
 }
