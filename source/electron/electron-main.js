@@ -423,7 +423,7 @@ app.whenReady().then(async () => {
               greenlog("http response ", contentType);
               let raw = [];
 
-              let utf8 = !/^(image|audio)/.test(contentType);
+              let utf8 = !/^(image|audio|application\/rsd)/.test(contentType);
               if (utf8) response.setEncoding('utf8');
 
               response.on('data', chunk => raw.push(chunk))
