@@ -100,7 +100,7 @@ function fetchAudio({ on_header, on_buffer, on_error, signal }) {
     window.trsd_log = [];
     
     // 2^24 (16.78MB), base game atlas is 5,999,308 bytes at time of writing (35% of initial buffer size)
-    let buffer = new Uint8Array(16_777_216);
+    let buffer = new Uint8Array(16777216);
     let read_position = 0;
     let buffer_length = 0;
     
