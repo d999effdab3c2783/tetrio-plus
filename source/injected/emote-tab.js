@@ -9,7 +9,9 @@
   const emotes = window.emoteMap;
   const emoteList = [];
 
-  let accesslevels = { 1: true, 2: user.supporter, 3: user.verified, 4: user.staff };
+  // Access level 4 has only one emote (:wifeheart:)
+  // I'm assuming sysop is the only role that has that access level, since as far as I know only osk has it
+  let accesslevels = { 1: true, 2: user.supporter, 3: user.staff, 4: user.sysop };
   console.log("Emote tab: access levels:", accesslevels);
   for (let { id, type, src, access } of Object.values(emotes))
     if (!emoteList.some(emote => emote.name == id))
@@ -109,7 +111,7 @@
 
     let count = 0;
     for (let img of picker.children) {
-      let match = img.getAttribute('data-emote').startsWith(partialEmote);
+      let match = img.getAttribute('data-emote').toLowerCase().startsWith(partialEmote.toLowerCase());
       if (!match) img.classList.remove('active');
       img.classList.toggle('match', match);
       if (match) count++;
@@ -117,6 +119,6 @@
 
     if (!picker.querySelector('.match:not(.disallowed).active'))
       picker.querySelector('.match:not(.disallowed)')?.classList?.add?.('active');
-    picker.classList.toggle('list', count <= 17); // 17 = # of ranks
+    picker.classList.toggle('list', count <= 18); // 18 = # of ranks
   }
 })()

@@ -8,17 +8,17 @@
   let res = await storage.get('enableEmoteTab');
   if (!res.enableEmoteTab) return;
 
-  let url = `https://ch.tetr.io/api/users/${localStorage.userID}`;
+  let url = `https://ch.tetr.io/api/users/${localStorage.tetrio_userID}`;
   localStorage.chTetrioUser = await fetch(url)
     .then(r => r.json())
     .then(d => ({
-      verified: d.data.user.verified,
-      staff: d.data.user.role == 'admin' || d.data.user.role == 'mod',
-      supporter: d.data.user.supporter
+      sysop: d.data.role == 'sysop', // osk only, I assume
+      staff: d.data.role == 'sysop' || d.data.role == 'admin' || d.data.role == 'mod',
+      supporter: d.data.supporter
     }))
     .catch(ex => {
       console.warn('Failed to fetch usable emotes', ex);
-      return { supporter: true, verified: true, staff: true };
+      return { supporter: true, staff: true, sysop: true };
     })
     .then(val => JSON.stringify(val));
 
