@@ -9,7 +9,7 @@ source ./resources/desktop-ci/config
 mkdir programs
 cd programs
 echo "{}" > package.json
-yarn add @electron/asar@3.2.9
+yarn add @electron/asar@4.0.1
 cd ..
 
 if [ ! -f 'TETR.IO Setup.tar.gz' ]; then
@@ -17,9 +17,11 @@ if [ ! -f 'TETR.IO Setup.tar.gz' ]; then
 else
   echo "Using existing 'TETR.IO Setup.tar.gz'"
 fi
-tar --strip-components=2 -zxvf 'TETR.IO Setup.tar.gz' --wildcards 'tetrio-desktop-*/resources/app.asar'
+# new in desktop v10: for some reason asar attempts to unpack into a folder called `app.asar.unpacked`, which it doesn't create but which does exist alongside the app.asar.
+# no clue what it's for, but make it not fail by also extracting it along with app.asar (note the glob star at the end of app.asar)
+tar --strip-components=2 -zxvf 'TETR.IO Setup.tar.gz' --wildcards 'tetrio-desktop-*/resources/app.asar*'
 
-./programs/node_modules/@electron/asar/bin/asar.js extract app.asar out
+./programs/node_modules/@electron/asar/bin/asar.mjs extract app.asar out
 node ./scripts/build-electron.js
 
 mkdir -p out/tetrioplus
@@ -42,4 +44,4 @@ cp source/lib/tpsecore_bg.wasm source/lib/tpsecore.js out/tetrioplus/source/lib
 # cleanup
 rm 'TETR.IO Setup.tar.gz' app.asar
 
-./programs/node_modules/@electron/asar/bin/asar.js pack out app.asar
+./programs/node_modules/@electron/asar/bin/asar.mjs pack out app.asar
