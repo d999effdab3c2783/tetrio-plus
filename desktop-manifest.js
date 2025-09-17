@@ -7,8 +7,8 @@ const manifest = JSON.parse(fs.readFileSync(
 // Moved to this file since apparently "browser_specific_settings" means
 // "firefox settings that firefox will complain about if you add your own entry"
 manifest.browser_specific_settings.desktop_client = {
-  // Hash of the uninstall app.asar
-  "vanilla_hash": "1F159868625EEE200AE683BCB78BF3AF3691C438",
+  // SHA1 hash of the uninstall app.asar
+  "vanilla_hash": "107B7E52DA1AE5E1D391F6C6FB1133C45961458A",
   "show_uninstaller_button": true,
   "scripts": [
     "source/shared/migrate.js",
