@@ -63,39 +63,11 @@ export default {
         <td class="song-loop-length">
           <input type="number" v-model.number="song.metadata.loopLength" />
         </td>
+        <td class="song-hidden">
+          <input type="checkbox" v-model.boolean="song.metadata.hidden"></input>
+        </td>
       </tr>
-      <td class="song-hidden">
-        <input type="checkbox" v-model.boolean="song.metadata.hidden"></input>
-      </td>
     </table>
-
-    <!-- <div v-if="!builtin" class="built-in-music loading">
-      Fetching built-in music list...
-    </div>
-    <table v-else class="music-table built-in-music">
-      <tr>
-        <th class="song-name">name</th>
-        <th class="song-jpname">jpname</th>
-        <th class="song-artist">artist</th>
-        <th class="song-jpartist">jpartist</th>
-        <th class="song-genre">genre</th>
-        <th class="song-source">source</th>
-        <th class="song-loop">loop</th>
-        <th class="song-loop-start">loopStart</th>
-        <th class="song-loop-length">loopLength</th>
-      </tr>
-      <tr class="song" v-for="song of builtin">
-        <td class="song-name">{{ song.name }}</td>
-        <td class="song-jpname">{{ song.jpname }}</td>
-        <td class="song-artist">{{ song.artist }}</td>
-        <td class="song-jpartist">{{ song.jpartist }}</td>
-        <td class="song-genre">{{ song.genre }}</td>
-        <td class="song-source">{{ song.source }}</td>
-        <td class="song-loop">{{ song.loop }}</td>
-        <td class="song-loop-start">{{ song.loopStart }}</td>
-        <td class="song-loop-length">{{ song.loopLength }}</td>
-      </tr>
-    </table> -->
   `,
   props: ['music', 'builtin']
 }
