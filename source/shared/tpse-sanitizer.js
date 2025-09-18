@@ -301,6 +301,9 @@ async function sanitizeAndLoadTPSE(data, storage, options={}) {
 
         if (typeof song.metadata.source != 'string')
           return `ERROR: Expected string at [].metadata.source`;
+        
+        if (typeof song.metadata.normalizeDb != 'number')
+          return `ERROR: Expected number at [].metadata.normalizeDb`;
 
         let genres = ['INTERFACE', 'CALM', 'BATTLE', 'DISABLED', 'OVERRIDE'];
         if (genres.indexOf(song.metadata.genre) === -1)

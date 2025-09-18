@@ -215,7 +215,7 @@ async function checkMusic(status) {
     }
     if (!music[i].metadata) {
       issues.push(`Song #${i+1}: metadata is missing`);
-      music[i].metadata = { artist: 'reset', genre: 'CALM', jpartist: 'reset', jpname: 'reset', name: 'reset', source: 'reset', loop: false, loopStart: 0, loopLength: 0 };
+      music[i].metadata = { artist: 'reset', genre: 'CALM', jpartist: 'reset', jpname: 'reset', normalizeDb: 0, name: 'reset', source: 'reset', loop: false, loopStart: 0, loopLength: 0 };
     }
   }
 

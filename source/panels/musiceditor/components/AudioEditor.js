@@ -65,6 +65,10 @@ export default {
           <label>Artist (jp)</label>
           <input type="text" v-model="song.metadata.jpartist"></input>
         </div>
+        <div class="option-pair" title="Normalization dB">
+          <label>Normalization dB</label>
+          <input type="text" v-model.number="song.metadata.normalizeDb"></input>
+        </div>
         <div class="option-pair" title="The genre determines where the song will play">
           <label>Song pool</label>
           <select v-model="song.metadata.genre">

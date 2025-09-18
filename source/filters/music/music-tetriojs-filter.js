@@ -99,12 +99,13 @@ createRewriteFilter("Tetrio.js Music", "https://tetr.io/js/tetrio.js*", {
           .replace(/("[^"]+":)(\.\d+)/, (_, key, number) => key + '0' + number)
           // Fill in constants
           .replace(
-            /("[^"]+":)([A-Za-z\.]+)/g,
+            /("[^"]+":)([A-Za-z_\.]+)/g,
             (_, key, constant) => {
               if (!constants[constant]) console.error("Unknown constant", constant)
               return key + constants[constant];
             }
           );
+        console.log("sanitizedMusicJson", sanitizedMusicJson);
 
         let music;
         if (disableVanillaMusic) {
@@ -174,6 +175,7 @@ createRewriteFilter("Tetrio.js Music", "https://tetr.io/js/tetrio.js*", {
                 loop: false,
                 loopStart: 0,
                 loopEnd: 0,
+                normalizeDb: 0,
                 hidden: true
               })
             }

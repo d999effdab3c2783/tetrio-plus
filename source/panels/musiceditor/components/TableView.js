@@ -8,6 +8,7 @@ export default {
         <th class="song-jpname">jpname</th>
         <th class="song-artist">artist</th>
         <th class="song-jpartist">jpartist</th>
+        <th class="song-normalizeDb">normalizeDb</th>
         <th class="song-genre">genre</th>
         <th class="song-genre">override</th>
         <th class="song-source">source</th>
@@ -29,6 +30,9 @@ export default {
         </td>
         <td class="song-jpartist">
           <input type="text" v-model="song.metadata.jpartist" />
+        </td>
+        <td class="song-normalizeDb">
+          <input type="text" v-model.number="song.metadata.normalizeDb" />
         </td>
         <td class="song-genre">
           <select v-model="song.metadata.genre">

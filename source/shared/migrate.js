@@ -371,6 +371,23 @@ var migrate = (() => {
       }
     }
   });
+  
+  /*
+   v0.27.10 - TETR.IO beta β1.7.4  adds 'normalizeDb' field to music
+   + music[].metadata.hidden
+  */
+  migrations.push({
+    version: '0.27.10',
+    run: async dataSource => {
+      await dataSource.set({ version: '0.27.10' });
+      let { music } = await dataSource.get('music');
+      if (music) {
+        for (let song of music)
+          song.metadata.normalizeDb = 0;
+        await dataSource.set({ music });
+      }
+    }
+  });
 
   return async function migrate(dataSource) {
     let { version: initialVersion} = await dataSource.get('version');
