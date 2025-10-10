@@ -15,24 +15,3 @@ createRewriteFilter("Break the game hooks", "https://tetr.io/js/tetrio.js*", {
     });
   }
 })
-
-/*createRewriteFilter("temporary debug hooks", "https://tetr.io/js/tetrio.js*", {
-  enabledFor: async (storage, request) => {
-    return true;
-  },
-  onStop: async (storage, url, src, callback) => {
-    let patched = false;
-    let reg1 = /`xHW.+?\)}`/g;
-    src = src.replace(reg1, (match) => {
-      patched = true;
-      return `{ toString() { console.trace("xHW read"); debugger; return ${match}; } }`;
-    });
-    if (!patched) console.log('temporary debug broke');
-
-    callback({
-      type: 'text/javascript',
-      data: src,
-      encoding: 'text'
-    });
-  }
-})*/
