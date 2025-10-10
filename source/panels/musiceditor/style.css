@@ -38,9 +38,11 @@ button {
   background-color: #444;
   padding: 8px;
   width: 400px;
-  height: 70px;
   border: 2px solid #555;
   max-width: calc(100vw - 36px);
+}
+.listeditor > .listelement.fileuploader {
+  height: 70px;
 }
 .listeditor > .listelement:not(:last-child) {
   margin-bottom: 8px;
@@ -127,8 +129,8 @@ button {
 
   padding: 8px;
   border: 2px solid #555;
-  width: 350px;
-  min-height: 306px;
+  width: 375px;
+  min-height: 505px;
 }
 .editor.inline {
   width: auto;

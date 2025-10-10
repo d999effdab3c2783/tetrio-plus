@@ -105,6 +105,7 @@ export default {
             loop: true,
             loopStart: 0,
             loopLength: loopLength,
+            normalizeDb: 0,
             hidden: false
           }
         });

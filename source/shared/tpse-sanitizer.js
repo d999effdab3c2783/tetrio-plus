@@ -322,7 +322,7 @@ async function sanitizeAndLoadTPSE(data, storage, options={}) {
           if (
             [
               'name', 'jpname', 'artist', 'jpartist', 'genre', 'source', 'loop',
-              'loopStart', 'loopLength', 'hidden'
+              'loopStart', 'loopLength', 'hidden', 'normalizeDb'
             ].indexOf(key) == -1
           ) return `ERROR: Unexpected value at [].metadata.${key}`;
         }

@@ -69,6 +69,7 @@ const app = new Vue({
         // Fill in constants with whatever, we only really care about song names here
         .replace(/("[^"]+":)([A-Za-z\._]+)/g, (_, key, constant) => key + 'null')
         .replace(/"source":([^\d"},][^,}]+)/g, `"source": null`);
+      console.log('attempting to parse sanitized builtins', sanitized);
       this.builtin = JSON.parse(sanitized);
       console.log('fetched builtins', this.builtin);
     } catch(ex) {
