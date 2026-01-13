@@ -146,6 +146,7 @@ const app = new Vue({
                 Use old OSD icons
               </option-toggle>
             </option-toggle>
+            <button @click="openWOSHIZHAZHA120Customize">Open WOSHIZHAZHA120's Customize</button>
           </div>
         </fieldset>
         <fieldset class="section">
@@ -492,6 +493,9 @@ const app = new Vue({
       browser.management.uninstallSelf().catch(ex => {
         alert(ex.toString());
       });
+    },
+    async openWOSHIZHAZHA120Customize() {
+      await this.openPanel('source/WOSHIZHAZHA120/popup/index.html', 1200, 720);
     },
     async updateCheck() {
       let res = await browser.storage.local.get('enableUpdateCheck');

@@ -61,7 +61,9 @@ manifest.browser_specific_settings.desktop_client = {
     "source/content/custom-maps.js",
     "source/content/bgmtweak-enhancer.js",
     
-    "source/content/watermark.js"
+    "source/content/watermark.js",
+
+    "source/WOSHIZHAZHA120/content/plugin.js"
   ],
   "inject_css": [
     "source/content/draggable-header.css",
