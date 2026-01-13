@@ -1,0 +1,15 @@
+.container {
+    padding: 10px;
+}
+
+.plugins {
+    width: fit-content;
+}
+
+.plugin_information_divider {
+    padding: 0 5px;
+}
+
+.plugin_code {
+    flex: 1;
+}
