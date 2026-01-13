@@ -87,7 +87,9 @@
       "source/content/custom-maps.js",
       "source/content/bgmtweak-enhancer.js",
       
-      "source/content/watermark.js"
+      "source/content/watermark.js",
+
+      "source/WOSHIZHAZHA120/content/plugin.js"
     ],
     "run_at": "document_idle"
   }],
