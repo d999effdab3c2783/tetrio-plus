@@ -1,0 +1,21 @@
+name: 构建
+
+on:
+  push:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - run: ./scripts/build.sh
+
+      - uses: actions/upload-artifact@v4
+        with:
+          path: |
+            tetrioplus.xpi
+            app.asar.zip
