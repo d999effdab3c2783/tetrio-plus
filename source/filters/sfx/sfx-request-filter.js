@@ -9,7 +9,23 @@ createRewriteFilter("Sfx Request", "https://tetr.io/sfx/tetrio.opus.rsd*", {
     return true;
   },
   onStart: async (storage, url, src, callback) => {
-    let { customSounds, customSoundAtlas } = await storage.get(['customSounds', 'customSoundAtlas']);
+    let { customSounds, customSoundAtlas, customSoundsCache } = await storage.get(['customSounds', 'customSoundAtlas', 'customSoundsCache']);
+
+    if (customSoundsCache) {
+      if (customSoundsCache.h1 === customSounds.hashCode && customSoundsCache.h2 === customSoundAtlas.hashCode) {
+        callback({
+          type: 'audio/ogg',
+          data: (new TextEncoder).encode(
+              atob(customSoundsCache.binary)
+          ),
+          encoding: 'arraybuffer'
+        });
+
+        return;
+      } else {
+        await storage.remove(['customSoundsCache'])
+      }
+    }
     
     // Note: the new audio format introduced in TETR.IO β1.6.2 no longer uses the duration field and instead assumes tight packing,
     // with the duration of each sprite inferred by the distance to the offset of the next sprite.
@@ -56,6 +72,16 @@ createRewriteFilter("Sfx Request", "https://tetr.io/sfx/tetrio.opus.rsd*", {
     let final_buffer = new Uint8Array(header_buffer.length + audio_buffer.length);
     final_buffer.set(header_buffer, 0);
     final_buffer.set(audio_buffer, header_buffer.length);
+
+    await customSoundsCache.set({
+      customSoundsCache: {
+        h1: customSounds.hashCode,
+        h2: customSoundAtlas.hashCode,
+        binary: btoa(
+            (new TextDecoder).decode(final_buffer)
+        )
+      }
+    })
     
     callback({
       type: 'audio/ogg',
