@@ -65,8 +65,9 @@
   browser.storage.local.get('version').then(({ version }) => {
     console.log("Data version " + version)
   });
-  document.addEventListener('DOMContentLoaded', (event) => {
-    console.log("DOMContentLoaded - Loading content scripts")
+  let preload_script_loaded = false;
+  function load_preload_scripts() {
+    if (preload_script_loaded) return;
     let scripts = manifest.browser_specific_settings.desktop_client.preload_scripts;
     for (let script of scripts) {
       console.log("js:", script);
@@ -92,6 +93,15 @@
       styleTag.textContent = src;
       document.head.appendChild(styleTag);
     }
+    preload_script_loaded = true;
+  }
+  document.addEventListener('DOMContentLoaded', (event) => {
+    console.log("DOMContentLoaded - Loading content scripts")
+    load_preload_scripts();
+  });
+  window.addEventListener('load', (event) => {
+    console.log("window.load - Loading content scripts")
+    load_preload_scripts();
   });
 
   delete window.browser;
