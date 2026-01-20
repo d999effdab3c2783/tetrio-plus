@@ -1,0 +1,31 @@
+name: 构建
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
+
+      - id: cache-tpsecore
+        uses: actions/cache@v5
+        with:
+          path: pkg
+          key: ${{ github.repository }}/tpsecore
+
+      - if: steps.cache-tpsecore.outputs.cache-hit != 'true'
+        run: ./scripts/build-tpsecore.sh
+
+      - run: ./scripts/build.sh
+
+      - uses: actions/upload-artifact@v4
+        with:
+          path: |
+            tetrioplus.xpi
+            app.asar.zip
+            tetrio-plus_v*_for_desktop*.asar.zip
