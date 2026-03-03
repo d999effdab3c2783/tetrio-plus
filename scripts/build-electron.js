@@ -46,6 +46,9 @@ fs.writeFileSync(
     'createWindow();', // TODO: check if still necessary
     // https://stackoverflow.com/a/53612021
     'setTimeout(() => createWindow(), 1000);'
+  ).replace(
+    'blockDevtools = true',
+    'blockDevtools = false'
   )
 );
 

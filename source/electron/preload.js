@@ -68,6 +68,8 @@
   let preload_script_loaded = false;
   function load_preload_scripts() {
     if (preload_script_loaded) return;
+    // prevent devtools debugger
+    window.TETRAKARN = true
     let scripts = manifest.browser_specific_settings.desktop_client.preload_scripts;
     for (let script of scripts) {
       console.log("js:", script);
